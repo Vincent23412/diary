@@ -24,7 +24,6 @@ jobs:
           fi
 
       - name: Send email if no commit
-        if: steps.check.outputs.no_push == 'true'
         uses: dawidd6/action-send-mail@v3
         with:
           server_address: smtp@gmail.com
