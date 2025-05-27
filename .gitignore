@@ -1,0 +1,4 @@
+.env
+venv
+notion.py
+sync_notion.py
