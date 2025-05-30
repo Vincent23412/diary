@@ -41,9 +41,8 @@ jobs:
           # 🔧 強制重設 remote：先刪除再加回來
           git remote remove origin
           git remote add origin https://x-access-token:${GH_PAT}@github.com/$GITHUB_REPOSITORY
-          git pull origin main --rebase
           git remote -v  # ✅ 確認 remote URL 真的被改掉了
 
           git add notion-log
           git commit -m "📥 Update daily log for $(date +'%Y-%m-%d')" || echo "No changes to commit"
-          git push -u origin main
+          git push --force
