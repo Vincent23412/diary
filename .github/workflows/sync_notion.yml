@@ -33,11 +33,11 @@ jobs:
         env:
           GH_PAT: ${{ secrets.GH_PAT }}
         run: |
-          git remote -v
           echo "GH_PAT starts with: ${GH_PAT:0:6}******"
           git config --global user.name "github-actions[bot]"
           git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git remote set-url origin https://x-access-token:${GH_PAT}@github.com/${{ github.repository }}
+          git remote set-url origin https://x-access-token:${GH_PAT}@github.com/$GITHUB_REPOSITORY
+          git remote -v
           git add notion-log 
           git commit -m "📥 Update daily log for $(date +'%Y-%m-%d')" || echo "No changes to commit"
           git push
