@@ -38,14 +38,11 @@ jobs:
           git config --global user.name "github-actions[bot]"
           git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-          # 🔧 重設 remote，改用 Token 認證
+          # 🔧 強制重設 remote：先刪除再加回來
           git remote remove origin
-          git remote add origin https://x-access-token:${GH_PAT}@github.com/${GITHUB_REPOSITORY}
+          git remote add origin https://x-access-token:${GH_PAT}@github.com/$GITHUB_REPOSITORY
+          git remote -v  # ✅ 確認 remote URL 真的被改掉了
 
-          git remote -v  # ✅ 確認 remote URL 設定正確
-
-          git add notion-log total.md
+          git add notion-log
           git commit -m "📥 Update daily log for $(date +'%Y-%m-%d')" || echo "No changes to commit"
-
-          # 🚨 強制推送，覆蓋遠端 main 分支
-          git push origin main --force
+          git push -u origin main
