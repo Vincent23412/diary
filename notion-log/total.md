@@ -80,6 +80,88 @@ mkdir -p /path/to/local/dir
 - SCP 基於 SSH，適合快速傳輸安全檔案，不適合大量資料（可考慮 rsync）
 
 ---
+# 2025-05-30 筆記
+
+# 5/30
+
+# 📦 SCP 與解壓縮筆記整理
+
+## 📁 壓縮與解壓縮指令
+
+### `.tar.gz` 壓縮：
+
+將資料夾壓縮成 `.tar.gz` 檔案：
+
+tar -czvf output.tar.gz your_folder_name
+
+- `-c`：建立壓縮檔  
+- `-z`：透過 gzip 壓縮  
+- `-v`：顯示過程資訊（可省略）  
+- `-f`：指定壓縮檔名稱  
+
+---
+
+### `.tar.gz` 解壓縮：
+
+tar -xzvf file.tar.gz
+
+---
+
+## 📤 SCP 傳輸指令
+
+### ✅ 本機上傳到遠端：
+
+scp -i your-key.pem /path/to/local/file ec2-user@<IP>:/path/to/remote/dir
+
+- `-i`：指定 pem 憑證檔  
+- `file`：要上傳的本地檔案  
+- `ec2-user@<IP>`：遠端使用者與 IP  
+- `:/path/...`：遠端目的地路徑  
+
+---
+
+### ✅ 遠端下載到本機：
+
+scp -i your-key.pem ec2-user@<IP>:/path/to/remote/file /path/to/local/dir
+
+---
+
+### ✅ 遞迴傳整個資料夾：
+
+scp -i your-key.pem -r ec2-user@<IP>:/remote/folder /local/folder
+
+- `-r`：遞迴傳輸整個資料夾
+
+---
+
+## ⚠️ 常見錯誤與解法
+
+🔒 Permissions 0644 for 'your-key.pem' are too open
+
+chmod 400 your-key.pem
+
+原因：`.pem` 檔權限過開，需限制為只有自己可讀。
+
+---
+
+❌ No such file or directory
+
+原因：檔案或路徑名稱打錯，請確認路徑是否存在。
+
+---
+
+❗ SCP 下載時本地資料夾不存在
+
+mkdir -p /path/to/local/dir
+
+---
+
+## 🧠 備註
+
+- `.tar.gz` 是 tar 與 gzip 結合的格式，常用於 Linux 資料打包  
+- SCP 基於 SSH，適合快速傳輸安全檔案，不適合大量資料（可考慮 rsync）
+
+---
 # 5/30
 
 # SCP 與解壓縮筆記整理
