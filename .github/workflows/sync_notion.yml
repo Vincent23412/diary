@@ -47,4 +47,4 @@ jobs:
 
           git add notion-log
           git commit -m "📥 Update daily log for $(date +'%Y-%m-%d')" || echo "No changes to commit"
-          git push
+          git push -u origin main
