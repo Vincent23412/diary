@@ -12,7 +12,7 @@ jobs:
       - name: Check latest commit time
         id: check
         run: |
-          REPO="你的 GitHub 使用者名稱/你的 Repo 名稱"
+          REPO="Vincent23412/diary"
           TOKEN="${{ secrets.GITHUB_TOKEN }}"
           TODAY=$(date -u +%Y-%m-%d)
           COMMITS=$(curl -s -H "Authorization: token $TOKEN" https://api.github.com/repos/Vincent23412/diary/commits?since=${TODAY}T00:00:00Z)
