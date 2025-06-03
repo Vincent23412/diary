@@ -25,11 +25,11 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Run sync_notion.py
+      - name: Run daily_push_check.py
         env:
           NOTION_TOKEN: ${{ secrets.NOTION_TOKEN }}
           NOTION_PAGE_ID: ${{ secrets.NOTION_PAGE_ID }}
-        run: python sync_notion.py
+        run: python daily_push_check.py
 
       - name: Commit and push updated markdown
         env:
