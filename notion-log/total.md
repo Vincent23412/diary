@@ -1,3 +1,210 @@
+# 2025-06-05 筆記
+
+# 🛠️ TypeScript 開發過程問題整理筆記
+
+## 1. ❌ ERR_UNKNOWN_FILE_EXTENSION: ".ts"
+
+### 問題描述
+
+使用 Node.js 執行 .ts 檔案會出現錯誤：
+
+TypeError [ERR_UNKNOWN_FILE_EXTENSION]: Unknown file extension ".ts"
+
+
+### 原因
+
+Node.js 不支援直接執行 TypeScript (.ts) 檔案。
+
+### 解法
+
+### ✅ 方法一：使用 ts-node
+
+yarn add -D ts-node typescript
+npx ts-node src/index.ts
+
+
+### ✅ 方法二：使用 tsx（推薦）
+
+yarn add -D tsx typescript
+npx tsx src/index.ts
+
+
+### ✅ 方法三：先編譯再執行
+
+npx tsc     # 編譯 ts -> js
+node dist/index.js
+
+
+## 2. ❌ 錯誤的 yarn 安裝指令
+
+### 錯誤指令
+
+yarn -i --save-dev @types/express
+
+
+### 正確用法
+
+yarn add -D @types/express
+
+
+## 3. ❓ 是否可以使用 .tsx 作為執行工具？
+
+### 回答
+
+✅ 是的，這裡的 tsx 是指一個快速執行 TypeScript 的工具（esbuild-kit/tsx），它支援 .ts 和 .tsx 執行，且效能比 ts-node 更好。
+
+### 安裝與使用
+
+yarn add -D tsx
+npx tsx src/index.ts
+
+
+## 4. ✅ 使用 nodemon 搭配 TypeScript
+
+### 安裝方式
+
+yarn add -D nodemon tsx typescript
+
+
+### 建立 nodemon.json
+
+{
+  "watch": ["src"],
+  "ext": "ts",
+  "exec": "tsx src/index.ts"
+}
+
+
+### package.json script
+
+"scripts": {
+  "dev": "nodemon"
+}
+
+
+### 執行方式
+
+yarn dev
+
+
+# 🧠 TypeScript 套件型別筆記（@types）
+
+## ✅ 為什麼需要型別定義？
+
+- TypeScript 是靜態型別語言，需要知道每個函式與物件的「型別」才能正確編譯。
+
+- 有些 JavaScript 套件（如 express、ws）沒有內建型別資訊，所以 TypeScript 需要額外的型別定義檔案來理解它們。
+
+## 🔍 如何判斷一個套件是否需要安裝 @types/xxx？
+
+### ✅ 不需要安裝（內建型別）
+
+這些套件本身就支援 TypeScript，安裝主套件即可。
+
+- 判斷方法：
+
+### 範例：
+
+yarn add axios         # ✅ 不需要 @types/axios
+yarn add dayjs         # ✅ 不需要 @types/dayjs
+
+
+### ❌ 需要安裝 @types/xxx
+
+這些是 JavaScript 套件，沒有型別描述，要透過社群提供的 DefinitelyTyped 安裝型別。
+
+- 安裝方式：
+
+yarn add lodash
+yarn add -D @types/lodash
+
+
+- D 代表開發階段使用（devDependencies）
+
+### 常見範例：
+
+## 🛠 快速判斷方式
+
+### 方法一：用 yarn 查型別支援
+
+yarn info axios types       # ✅ 有型別 => 不需額外安裝
+yarn info express types     # ❌ 無型別 => 需要 @types/express
+
+
+### 方法二：查 npm 頁面說明
+
+- 搜尋關鍵字 typescript support 或 types
+
+- 看是否提到型別內建、還是需要另外安裝
+
+## 🧾 小提醒
+
+- 型別定義只在 開發階段使用，所以應放在 devDependencies
+
+- 如果你部署後還會用 ts-node 直接執行 .ts 檔，這時 @types/xxx 可能需要進 dependencies
+
+# 🧠 TypeScript / Node.js 開發筆記：Port 被佔用 & app vs server 差異
+
+## 🔧 一、當 Port 被佔用時怎麼辦？
+
+### ✅ 問題描述：
+
+當你啟動伺服器時出現錯誤：
+
+Error: listen EADDRINUSE: address already in use 127.0.0.1:3000
+
+
+表示 3000 port 已被其他程式佔用。
+
+### ✅ 解法步驟：
+
+### 1️⃣ 查出是誰佔用了該 port
+
+### Windows：
+
+netstat -ano | findstr :3000
+
+
+會看到一行類似這樣的結果，最後的數字是 PID：
+
+TCP    127.0.0.1:3000     0.0.0.0:0     LISTENING     12345
+
+
+### macOS / Linux：
+
+lsof -i :3000
+
+
+### 2️⃣ 終止該程式（使用 PID）
+
+### Windows：
+
+taskkill /PID 12345 /F
+
+
+### macOS / Linux：
+
+kill -9 12345
+
+
+### 3️⃣ 或改用其他 port（開發中建議）
+
+const PORT = process.env.PORT || 3001;
+server.listen(PORT);
+
+
+啟動時改用不同 port：
+
+PORT=3001 yarn dev
+
+
+## 🚦 二、Express 中 app 和 server 的差異
+
+### ✅ app 是什麼？
+
+- app = express();
+
+---
 # 2025-06-03 筆記
 
 # GitHub Actions 問題筆記
