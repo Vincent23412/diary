@@ -1,3 +1,187 @@
+# 2025-06-12 筆記
+
+## 設計安全的工作附載和應用程式
+
+### 🛡️ 防火牆與存取路徑設計
+
+- 使用者的存取請求需經過兩道防線：
+
+### 🌍 地端與雲端設計三大原則
+
+隔離性（Isolation）
+
+連通性（Connectivity）
+
+安全性（Security）
+
+### 🏗️ 子網路隔離策略（Subnet Design）
+
+- Public Subnet：
+
+- Private Subnet：
+
+- Protected Subnet（或稱 "Isolated"）：
+
+### 🔐 安全設計工具與策略
+
+### ✅ 安全設計小結
+
+- Security Group 是 EC2 的第一道防線。
+
+- OS 防火牆是 EC2 內部的第二道防線。
+
+- NACL 適合用來封鎖特定 IP 或開放大範圍的進出規則。
+
+- WAF 適合保護 Web 層，對應 OWASP Top 10 攻擊。
+
+問題二
+
+A：NACL保護的對象是子網
+B：安全權組保護ec2裡面的網卡
+C
+D：細膩度不夠
+
+### ✅ 選項 B：使用安全群組設定存取權
+
+- 正確
+
+- 安全群組是 狀態導向（stateful） 防火牆，適用於每個 EC2 實例
+
+- 可為 A 設定允許 port 80，為 B 設定允許 port 443
+
+- 可細緻控制每個實例的入站流量
+
+### ❌ 選項 A：使用網路 ACL 設定存取權
+
+- 錯誤
+
+- NACL 是 子網層級 的 stateless 防火牆
+
+- 無法分辨子網內不同 EC2 實例的特定流量
+
+- 若允許 port 80，則 B 無法阻擋；若允許 port 443，則 A 會被擋
+
+- 無法同時達成 A、B 的不同流量控制需求
+
+### ❌ 選項 C：使用 VPC 對等互連設定網路連線
+
+- 與本題無關
+
+- 用於 跨 VPC 連線，不解決流量過濾問題
+
+### ❌ 選項 D：使用路由表設定網路連線
+
+- 路由表是用來設定目的地網段的轉送
+
+- 無法控制 port 或協定層級的存取權限
+
+# 🧩 TypeScript + Yarn Workspace 問題整理
+
+## 📁 專案架構
+
+root/
+├── package.json        # 設定 workspaces
+├── tsconfig.json       # (可選) root tsconfig
+├── server/             # 子專案 1
+│   ├── package.json
+│   └── src/
+└── utils/              # 子專案 2 (被 server 引用)
+    ├── package.json
+    └── src/
+
+
+## 🔧 問題 1：yarn dev 出現錯誤
+
+### 錯誤訊息：
+
+error Couldn't find a package.json file in "C:\\Users\\xxx\\Documents\\GitHub"
+
+
+### 成因：
+
+你在 root 專案中執行 yarn dev，但該資料夾沒有 package.json，無法辨識該命令。
+
+### 解法：
+
+- 確保 根目錄有一個 package.json，並定義好 workspaces，例如：
+
+{
+  "private": true,
+  "workspaces": ["server", "utils"]
+}
+
+
+- 然後進入對應子專案執行指令：
+
+cd server
+yarn dev
+
+
+## ⚠️ 問題 2：[DEP0128] Invalid 'main' field
+
+### 錯誤訊息：
+
+DeprecationWarning: Invalid 'main' field in 'utils/package.json' of 'index.js'.
+
+
+### 成因：
+
+TypeScript 專案實際編譯出來的是 dist/index.js，但你在 package.json 裡面寫的是：
+
+"main": "index.js"  ❌
+
+
+### 解法：
+
+改成指向編譯後的檔案（通常放在 dist/）：
+
+"main": "dist/index.js"
+"types": "dist/index.d.ts" // 如果有型別檔的話
+
+
+## ❓ 問題 3：使用 TS 開發時 main 寫錯不報錯？
+
+### 原因：
+
+TS 編譯不會檢查 package.json 的 main 欄位。只有當：
+
+- 其他專案 import 該 module
+
+- 或打包 / 執行該 module
+
+時，Node 才會去解析 main。
+
+## 📄 問題 4：什麼是型別檔？缺少型別檔會怎樣？
+
+### 型別檔 .d.ts 的作用：
+
+- 告訴 TS 編譯器「某個模組有哪些 API 和型別」
+
+- 提供自動補全、錯誤提示、編譯安全性
+
+### 沒有型別檔會導致：
+
+- TS7016: Could not find a declaration file for module 'xxx'
+
+- 編譯器把該模組推斷為 any
+
+- 失去補全與靜態檢查，易出錯
+
+## ✅ 建議工作流程（TS + Workspace）：
+
+在 root 專案執行：
+
+加入 package.json 中的 workspace 設定：
+
+在每個子專案中執行：
+
+在每個子專案執行：
+
+設定 main、types 為 dist/ 資料夾：
+
+編譯一次，生成型別檔：
+
+---
 # 2025-06-05 筆記
 
 # 🛠️ TypeScript 開發過程問題整理筆記
