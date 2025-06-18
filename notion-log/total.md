@@ -1,3 +1,233 @@
+# 2025-06-18 筆記
+
+# 📦 npx 與 tsx 比較與使用筆記
+
+## 🧠 什麼是 npx？
+
+`npx` 是 Node.js 附帶的工具（來自 `npm`），用來**執行 Node 套件**而不需要全域安裝它們。
+
+### 📌 特點：
+
+- 可以執行本地或遠端的 npm 套件
+- 預設會**優先執行專案內的套件**
+- 若本地不存在，會**臨時從 npm 下載**後執行
+- 適合用於**一次性執行工具命令**
+
+---
+
+## 🧪 使用範例
+
+```bash
+npx create-react-app my-app
+npx tsx src/index.ts
+
+
+## ⚠️ npx 的潛在問題
+
+## 🧰 本地安裝 vs 使用 npx
+
+## 🛠️ 建議用法：搭配 tsx 使用
+
+### ✅ 推薦做法（專案內安裝 tsx）
+
+npm install --save-dev tsx
+
+
+在 package.json 中加入：
+
+"scripts": {
+  "dev": "tsx src/index.ts"
+}
+
+
+執行：
+
+npm run dev
+
+
+✅ 這樣可以確保使用本地版本的 tsx，且開發過程穩定、快速。
+
+## 🧪 要怎麼確認執行的是本地的 tsx？
+
+你可以這樣寫：
+
+"scripts": {
+  "dev": "which tsx && tsx src/index.ts"
+}
+
+
+輸出應該會是：
+
+./node_modules/.bin/tsx
+
+
+## ✅ 總結
+
+- npx 適合「一次性執行工具」
+
+- tsx 建議「本地安裝 + npm script 執行」
+
+- 開發與部署流程中應避免用 npx 呼叫 tsx
+
+### 🔄 使用 nodemon 自動重啟（開發環境）
+
+### 建議建立 nodemon.json：
+
+
+{
+  "watch": ["src"],
+  "ext": "ts,tsx",
+  "ignore": ["node_modules", "dist"],
+  "exec": "npx tsx src/index.ts",
+  "legacyWatch": true}
+
+
+
+✅ legacyWatch: true 對於 WSL 或 Docker 特別重要！
+
+### 加入 package.json script：
+
+
+{
+  "scripts": {
+    "dev": "nodemon"
+  }
+}
+
+
+
+### 執行：
+
+
+npm run dev
+
+
+
+## ✅ 常見問題與解法
+
+## 📝 延伸推薦
+
+- 可搭配 dotenv 處理 .env 環境變數
+
+- 可搭配 tsconfig.json 使用 "module": "esnext" + "target": "es2020"，最佳化 tsx 效能
+
+- 可用 pm2 管理正式部署（nodemon 僅供開發）
+
+你目前的 types.d.ts 是用來放 函式簽名（declaration） 的，屬於 TypeScript 的「宣告型別檔案」格式，通常會這樣用：
+
+// types.d.ts
+declare function myGlobalFn(x: number): string
+
+
+這是給 全域函數或沒有模組的第三方函式庫補型別 用的。
+
+### ✅ 建議做法：不要把 report 型別放進 types.d.ts
+
+因為：
+
+- types.d.ts 主要是宣告 global 或補第三方函式型別，不適合放業務邏輯用的 model。
+
+- 放在那邊可能會讓 Report 型別變成全域的，增加維護成本。
+
+- 你之後會有越來越多 model（例如 User, Post, Comment），分開會更清楚。
+
+### ✅ 建議目錄結構：
+
+src/
+├── types/
+│   ├── db.ts         # 放各種資料表 model，例如 Report
+│   └── types.d.ts    # 放 declare function / global types
+
+
+### ✅ 建議內容（src/types/db.ts）：
+
+export interface Report {
+  cid: string
+}
+
+
+然後你在使用的地方匯入：
+
+import { Report } from '../types/db'
+
+
+### ✅ 加分技巧：index.ts 整合所有型別（可選）
+
+// src/types/index.ts
+export * from './db'
+
+
+這樣其他地方可以這樣引入：
+
+import { Report } from '../types'
+
+
+### ✅ 使用方式
+
+import { Report } from '../types/db'
+
+
+### ✅ 可選：使用 types/index.ts 整合
+
+// index.ts
+export * from './db'
+
+
+## 📌 型別檔（Declaration File）是什麼？
+
+TypeScript 的型別檔（副檔名為 .d.ts）是用來描述一個函數、物件、模組或全域變數的型別，但不包含實作邏輯。常用於：
+
+- 為沒有型別定義的 JS 套件提供型別提示（如 @types/xxx）
+
+- 描述全域變數或全域函式的型別
+
+- 在專案中集中管理型別定義
+
+## 📁 為什麼放在 types.d.ts 就能被找到？
+
+### ✅ TypeScript 編譯器會自動載入 .d.ts：
+
+專案中任何位置的 .d.ts 檔案 都會被自動載入，只要：
+
+不需要顯式 import，只要是全域型別就能生效
+
+例如你的 tsconfig.json 包含：
+
+"include": ["src", "types.d.ts"]
+
+
+就會把 types.d.ts 自動編入整個專案的型別上下文。
+
+## 🔍 為什麼 func.ts 不行？
+
+因為 .ts 是一般模組程式碼檔案，不會被當作全域型別檔處理，具體行為有差：
+
+### ✅ 正確用法：
+
+- 想要全域型別生效：請寫在 .d.ts 裡
+
+- 若是模組型別或具體邏輯，請使用 .ts 並搭配 import
+
+## 🧠 延伸建議：如何組織大型專案型別？
+
+src/
+  types/
+    global.d.ts         # 全域型別定義
+    report.d.ts         # 特定功能模組的型別
+  controllers/
+  db/
+  index.ts
+tsconfig.json
+
+
+tsconfig.json 內：
+
+{
+  "include": ["src"]
+}
+
+
+---
 # 2025-06-17 筆記
 
 
