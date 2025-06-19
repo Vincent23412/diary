@@ -1,3 +1,188 @@
+# 2025-06-19 筆記
+
+# 📘 AWS 錯題整理筆記
+
+❌ Q1: 跨帳號給 SQS 權限
+
+題目：
+
+A development team is collaborating with another company to create an integrated product. The other company needs to access an Amazon Simple Queue Service (Amazon SQS) queue that is contained in the development team’s account. The other company wants to poll the queue without giving up its own account permissions to do so.
+
+選項：
+
+- A. Create an instance profile that provides the other company access to the SQS queue.
+
+- B. Create an IAM policy that provides the other company access to the SQS queue.
+
+- C. ✅ Create an SQS access policy that provides the other company access to the SQS queue.
+
+- D. Create an Amazon SNS access policy that provides the other company access to the SQS queue.
+
+解釋：
+
+- ✅ C 是正解：SQS queue 屬於支援資源型 policy 的 AWS 服務，可以透過 SQS access policy 授權其他帳號的角色或使用者來存取 queue。
+
+- ❌ A 是 EC2 專用的機器角色 profile，與 SQS 沒關。
+
+- ❌ B 是 identity-based policy，無法給別人帳號的使用者權限。
+
+- ❌ D 是 SNS 的權限設定，無法用來控制 SQS 存取權限。
+
+❌ Q2: 適合備份 NFS 資料的最低成本方案
+
+題目：
+
+A company has NFS servers in an on-premises data center that need to periodically back up small amounts of data to Amazon S3.
+
+選項：
+
+- A. Set up AWS Glue to copy the data from the on-premises servers to Amazon S3.
+
+- B. ✅ Set up an AWS DataSync agent on the on-premises servers, and sync the data to Amazon S3.
+
+- C. Set up an SFTP sync using AWS Transfer for SFTP to sync data from on premises to Amazon S3.
+
+- D. Set up an AWS Direct Connect connection between the on-premises data center and a VPC, and copy the data to Amazon S3.
+
+解釋：
+
+- ✅ B 是正解：AWS DataSync 專為高效搬移資料而設計，支援 NFS 且能安全快速地同步資料到 S3，並能控制頻率與排程，是最省成本與最低管理負擔的方案。
+
+- ❌ A：Glue 是 ETL 工具，不適合做簡單檔案備份。
+
+- ❌ C：AWS Transfer for SFTP 適合與使用者互動式檔案傳輸，不適合備份用途且維運成本較高。
+
+- ❌ D：Direct Connect 適合大流量資料中心對雲端的專線連接，不適合小量備份。
+
+❌ Q3: RDS 效能瓶頸，如何改善位置追蹤服務
+
+題目：
+
+A company has deployed a multiplayer game for mobile devices. The game requires live location tracking of players based on latitude and longitude. The data store for the game must support rapid updates and retrieval of locations. Currently using Amazon RDS for PostgreSQL with read replicas, but under peak load, performance drops.
+
+選項：
+
+- A. Take a snapshot of the existing DB instance. Restore the snapshot with Multi-AZ enabled.
+
+- B. Migrate from Amazon RDS to Amazon Elasticsearch Service (Amazon ES) with Kibana.
+
+- C. Deploy Amazon DynamoDB Accelerator (DAX) in front of the existing DB instance. Modify the game to use DAX.
+
+- D. ✅ Deploy an Amazon ElastiCache for Redis cluster in front of the existing DB instance. Modify the game to use Redis.
+
+解釋：
+
+- ✅ D 是正解：ElastiCache for Redis 可用於儲存快取資料（如即時位置），提供毫秒級延遲，大幅降低 DB 負載。
+
+- ❌ A：Multi-AZ 是為了高可用性設計，無法改善效能瓶頸。
+
+- ❌ B：ES 是全文索引與分析服務，不適合快速寫入與查詢的即時遊戲位置追蹤。
+
+- ❌ C：DAX 是給 DynamoDB 用的快取，不適用於 RDS。
+
+# 🔐 AWS 登入驗證機制整理
+
+## 一、身份驗證（Authentication）與授權（Authorization）
+
+- Authentication（驗證）：你是誰？（帳號密碼、OTP、多因子）
+
+- Authorization（授權）：你能做什麼？（角色、權限、資源訪問）
+
+## 二、AWS 提供的身份驗證機制一覽
+
+## 三、Amazon Cognito 詳解
+
+### ✅ Cognito User Pools
+
+- 管理 App 使用者帳號與登入
+
+- 支援：
+
+- 可整合到前端 Web / App / API Gateway
+
+### ✅ Cognito Identity Pools
+
+- 將登入的使用者映射為 IAM Role
+
+- 可訪問 S3、DynamoDB 等 AWS 資源
+
+- 通常搭配 User Pools 使用
+
+## 四、IAM Identity Center（AWS SSO）
+
+- 提供跨 AWS Account 的統一登入入口
+
+- 可連接：
+
+- 功能：
+
+## 五、選擇建議
+
+## ❌ 錯題整理：EKS + Fargate 儲存方案
+
+題目：
+
+A company is deploying a new application to Amazon EKS with an AWS Fargate cluster. The application needs a storage solution for data persistence. The solution must be highly available and fault tolerant. The solution also must be shared between multiple application containers. Which solution will meet these requirements with the LEAST operational overhead?
+
+選項：
+
+- A. Create Amazon EBS volumes in the same AZs where EKS worker nodes are placed. Register the volumes in a StorageClass object on an EKS cluster. Use EBS Multi-Attach to share the data between containers.
+
+- B. ✅ 正確答案：Create an Amazon EFS file system. Register the file system in a StorageClass object on an EKS cluster. Use the same file system for all containers.
+
+- C. Create an Amazon EBS volume. Register the volume in a StorageClass object on an EKS cluster. Use the same volume for all containers.
+
+- D. Create Amazon EFS file systems in the same AZs where EKS worker nodes are placed. Register the file systems in a StorageClass object on an EKS cluster. Create an AWS Lambda function to synchronize the data between file systems.
+
+解析：
+
+- EFS 是一種共享型、高可用、橫向擴展的檔案系統，支援跨 AZ 並與 Fargate 搭配使用，最適合做為容器的共享儲存。
+
+- EBS 不支援跨多容器共享或 Fargate。
+
+- 建立多個 EFS 並用 Lambda 同步是額外負擔，非最佳解。
+
+## ❌ 錯題整理：行動 App 上傳內容最低延遲策略
+
+題目：
+
+A company has a new mobile app. Users access content often in the first minutes after the content is posted. 90% of the content is consumed within the AWS Region where it is uploaded. Which solution will optimize the user experience by providing the LOWEST latency for content uploads?
+
+選項：
+
+- A. Upload and store content in Amazon S3. Use Amazon CloudFront for the uploads.
+
+- B. Upload and store content in Amazon S3. Use S3 Transfer Acceleration for the uploads.
+
+- C. Upload content to Amazon EC2 instances in the Region that is closest to the user. Copy the data to Amazon S3.
+
+- D. ✅ 正確答案：Upload and store content in Amazon S3 in the Region that is closest to the user. Use multiple distributions of Amazon CloudFront.
+
+解析：
+
+- 選 D 是最佳策略，直接將內容上傳到最接近使用者的 S3，再透過多個 CloudFront distribution 加速內容傳送。
+
+- A 錯在 CloudFront 是用來做下載內容快取，不能上傳。
+
+- B 的 Transfer Acceleration 適合跨區域上傳，不適合大多為單一區域的內容。
+
+- C 把資料繞到 EC2 會增加延遲與複雜度。
+
+## ❌ 錯題整理：需風險感知 MFA 的登入系統設計
+
+題目：
+
+A solutions architect is designing a user authentication solution. The solution must invoke two-factor authentication for users logging in from inconsistent geo-locations, IPs, or devices. It must scale to millions of users.
+
+選項：
+
+- A. ✅ 正確答案：Configure Amazon Cognito user pools for user authentication. Enable the risk-based adaptive authentication feature with multi-factor authentication (MFA)
+
+- B. Configure Amazon Cognito identity pools for user authentication. Enable multi-factor authentication (MFA)
+
+- C. Configure AWS IAM users for user authentication. Attach an IAM policy that allows the AllowManageOwnUserMFA action
+
+---
 # 2025-06-18 筆記
 
 # 📦 npx 與 tsx 比較與使用筆記
