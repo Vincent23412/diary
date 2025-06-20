@@ -1,3 +1,178 @@
+# 2025-06-20 筆記
+
+## ❓ 題目：會計資料遷移至 AWS 受管服務（需支援不可變與加密驗證記錄）
+
+情境：
+
+公司現有會計系統部署於 EC2，自建環境成本高，需遷移至 AWS 受管服務，並滿足以下條件：
+
+- ✅ 低維運負擔（managed service）
+
+- ✅ 資料不可修改（immutable）
+
+- ✅ 可驗證變更記錄（cryptographically verifiable）
+
+- ✅ 成本效益考量
+
+### ✅ 正確選項解析：
+
+D. Amazon QLDB (Quantum Ledger Database)
+
+- AWS 管理型分類帳型資料庫（ledger DB）
+
+- 支援 不可變資料寫入記錄（immutable append-only journal）
+
+- 支援 加密驗證（cryptographic hashing）確保歷史資料完整性
+
+- 適用於會計、審計、金融交易記錄
+
+- 不需自行管理底層基礎設施 → 維運負擔低
+
+### ❌ 錯誤選項解析：
+
+A. Amazon Redshift
+
+- 是數據倉儲（data warehouse），非用於記錄不可變交易
+
+- 適用於 OLAP 分析用途，不是專為 immutable logs 設計
+
+- 不具原生的加密驗證或 append-only log 設計
+
+B. Amazon Neptune
+
+- 圖形資料庫（graph DB），適用於處理節點/關係分析（如社交網絡）
+
+- 不具不可變 append-only journal 或加密驗證特性
+
+C. Amazon Timestream
+
+- 時間序列資料庫，適用於 IoT、監控資料等時間序列紀錄
+
+- 無法提供 cryptographic verifiability 與 immutable log 設計
+
+### ✅ 總結建議：
+
+📌 推薦使用 Amazon QLDB 作為符合會計應用需求的最佳選擇
+
+## ❓ 題目：在 AWS 上安全管理應用設定與憑證，且維運負擔最小
+
+情境說明：
+
+公司開發應用程式連接到 Amazon RDS，需達成以下目標：
+
+- 管理應用程式設定（AppConfig or equivalent）
+
+- 安全儲存並擷取資料庫及服務憑證（如帳號密碼）
+
+- 維運負擔低（如自動輪替、集中控管、整合 IAM）
+
+### ✅ 正確選項解析：
+
+A. AWS AppConfig + AWS Secrets Manager
+
+- AWS AppConfig：用於集中管理應用程式設定（包含部署版本控制、環境差異、rollout 控制）
+
+- AWS Secrets Manager：
+
+- ✅ 完全受管服務
+
+- ✅ 最小維運負擔（不需自行開發加密與權限系統）
+
+### ❌ 錯誤選項解析：
+
+B. AWS Lambda + SSM Parameter Store
+
+- Lambda 並不是設定管理工具，用來儲存與管理設定不符合設計意圖
+
+- Systems Manager Parameter Store 雖支援密鑰儲存，但：
+
+C. Encrypted config file in S3
+
+- 雖可用 S3 儲存加密檔案，但需：
+
+- 缺乏設定版本控制、變更管理、自動輪替等原生支援
+
+D. AWS AppConfig + Amazon RDS for credentials
+
+- ❌ Amazon RDS 並不是用來儲存應用程式憑證
+
+- 資料庫不適合作為 secrets 儲存來源，缺乏加密、輪替與 IAM 整合能力
+
+### ✅ 結論建議
+
+📌 最推薦解法：使用 AppConfig 配置應用程式設定 + Secrets Manager 管理與存取密碼或 API 金鑰
+
+## ❓ 題目：如何最省成本與最少設定地標準化 EBS Volume 加密檢查
+
+情境說明：
+
+- 公司想要標準化 EBS 加密策略
+
+- 並希望可以自動檢查所有 volume 是否都有加密
+
+- 同時要 成本低 且 設定步驟少（Low configuration effort）
+
+### ✅ 正確選項解析：
+
+D. AWS Config + EBS encryption rule
+
+- AWS Config：是一個受管服務，可自動評估 AWS 資源的設定是否符合規則。
+
+- 你可以使用 Config 內建的管理規則（managed rule）：
+
+- ✅ 無需自建 Lambda、撰寫程式或排程機制
+
+- ✅ 自動監控與報告，不需定期手動觸發
+
+### ❌ 錯誤選項解析：
+
+A. Lambda + EventBridge + DescribeVolumes
+
+- 雖然可達成目的，但：
+
+B. Fargate Task + DescribeVolumes
+
+- 同樣需自己開發檢查邏輯
+
+- 還需配置 Fargate Task 定期執行 + IAM 權限
+
+- 成本高於 Lambda，維護複雜度更高
+
+C. 用 IAM 限制 + Cost Explorer 檢查
+
+- 無法直接評估 EBS 是否加密
+
+- 依靠 tags 與人工識別成本高且容易出錯
+
+- ❌ 不適合作為加密策略標準化手段
+
+### ✅ 總結建議
+
+📌 最佳解法：使用 AWS Config 內建規則 encrypted-volumes 自動檢查 EBS 加密狀況，無需撰寫程式碼或排程
+
+## ❓ 題目：自動化執行多個並行與串行資料預處理工作，並具備錯誤處理與狀態管理
+
+需求摘要：
+
+- 多來源資料上傳至 Amazon S3
+
+- 資料預處理工作需：
+
+- 希望最小化 錯誤處理、重試與狀態管理的維運負擔
+
+### ✅ 正確選項解析
+
+C. AWS Glue DataBrew + AWS Step Functions
+
+- Glue DataBrew：可視化無程式碼的資料清理與轉換服務，適合 ETL 前處理
+
+- Step Functions：
+
+✅ 滿足：
+
+- 並行 + 有順序的任務流程需求
+
+---
 # 2025-06-19 筆記
 
 # 📘 AWS 錯題整理筆記
