@@ -1,3 +1,176 @@
+# 2025-06-21 筆記
+
+## ✅ RDS PostgreSQL 提供資料科學家近即時唯讀存取的高可用架構
+
+### 題目摘要：
+
+公司想讓資料科學家能 近即時、唯讀存取生產用的 Amazon RDS for PostgreSQL 資料庫。目前資料庫為 Single-AZ 部署。資料科學家的查詢複雜，但不影響主業務。需求是：
+
+- ✅ 唯讀
+
+- ✅ 近即時存取
+
+- ✅ 高可用性
+
+- ✅ 成本效益最佳
+
+### ✅ 正確答案：D. Change the setup from a Single-AZ to a Multi-AZ cluster deployment with two readable standby instances. Provide read endpoints to the data scientists.
+
+### 為什麼選 D？
+
+- Multi-AZ cluster（特別是 Aurora 或新的 RDS Multi-AZ DB cluster）允許部署多個 readable standby instances。
+
+- 可透過 cluster endpoint 給資料科學家 低延遲、近即時的唯讀查詢能力。
+
+- 比起單純的 Multi-AZ standby（無法讀取）或單純 scale-up，更具可用性與成本效益。
+
+- 不會影響主庫效能，且具有 failover 保護。
+
+### ❌ 錯誤選項解析：
+
+### A. Scale the existing production database
+
+- 僅提升主庫效能（e.g. CPU、記憶體）
+
+- ✅ 沒有提供唯讀分流
+
+- ❌ 資料科學家的查詢仍會影響生產主庫
+
+- ❌ 非高可用架構
+
+### B. Multi-AZ with larger secondary standby
+
+- Multi-AZ standby 是 無法用來查詢的，只做故障接手用（❌ 非 readable）
+
+- 提供唯讀存取會失敗
+
+- ❌ 不符合唯讀查詢需求
+
+### C. Multi-AZ + 兩個 read replica
+
+- 雖然符合唯讀需求，但：
+
+- ❌ 成本效益低於 D
+
+### 🔍 小知識補充：
+
+- RDS Multi-AZ DB Cluster（支援 PostgreSQL）：
+
+## ✅ 問題：CloudFront 分區內容發布限制
+
+一間全球影片串流公司使用 Amazon CloudFront 作為 CDN，並希望分階段將內容推出至不同國家。
+
+### 📌 要求：
+
+- 限制內容觀看區域
+
+- 未在推出國家的使用者 不能存取該內容
+
+## 🎯 正確答案：A
+
+Add geographic restrictions to the content in CloudFront by using an allow list. Set up a custom error message.
+
+## ✅ 解釋
+
+- CloudFront 支援地理限制（Geo restriction）
+
+## ❌ 錯誤選項解析
+
+- B. Signed URL 和 Cookies
+
+- C. 加密內容
+
+- D. Time-restricted Signed URLs
+
+## 📘 補充知識：CloudFront 地理限制（Geo Restriction）
+
+- 設定方式：
+
+- 適用場景：
+
+## ✅ 問題：使用 AWS 改善 on-prem 災難復原 (DR)
+
+- 應用程式運行在 VM 上，使用 Microsoft SQL Server Standard
+
+- RPO ≤ 30 秒（資料遺失最多 30 秒）
+
+- RTO ≤ 60 分鐘（1 小時內必須恢復）
+
+- 需求：盡可能降低成本
+
+## 🎯 正確答案：C
+
+Use AWS Elastic Disaster Recovery configured to replicate disk changes to AWS as a pilot light.
+
+## ✅ 解釋：
+
+- AWS Elastic Disaster Recovery (AWS DRS)：
+
+## ❌ 錯誤選項解析
+
+- A. Always On Availability Groups（Enterprise 版）
+
+- B. Warm standby + DMS CDC
+
+- D. 每晚備份 → S3
+
+## 📘 補充：Pilot Light 架構說明
+
+- Pilot Light 架構：
+
+## ✅ 問題：建置一個具有會員登入的 Web 應用程式，訪問模式不可預期且可能長時間 idle，需成本效益高
+
+### 🎯 需求關鍵點：
+
+- 使用者訪問 不穩定且可能 idle → 適合無伺服器架構（serverless）
+
+- 只有 付費用戶才能登入使用
+
+- 需 登入驗證功能
+
+- 要求 成本效益高（MOST cost-effective）
+
+## ✅ 正確答案（3 選項）：
+
+- A. AWS Lambda + API Gateway + DynamoDB
+
+- C. Amazon Cognito User Pool for authentication
+
+- E. AWS Amplify + CloudFront for static frontend hosting
+
+## ✅ 解釋：
+
+### A. Lambda + API Gateway + DynamoDB ✅
+
+- 適合應對不穩定且間歇性訪問（只在需要時觸發）
+
+- 按次計費、免管理伺服器，成本效益高
+
+- DynamoDB 適合低延遲、無伺服器的 key-value 存取
+
+### C. Cognito User Pool ✅
+
+- 提供 會員註冊與登入驗證（authentication） 的完整方案
+
+- 可搭配 API Gateway + Lambda 驗證授權，保護資源
+
+- 支援 OAuth2、MFA、第三方登入等，免自建登入機制
+
+### E. AWS Amplify ✅
+
+- 適合前端 static web hosting（HTML、CSS、JS）
+
+- 預設整合 CloudFront，提供高效能 CDN 傳遞
+
+- 成本低、部屬簡便，適合快速建置網站
+
+## ❌ 錯誤選項解析：
+
+### B. ECS + RDS ❌
+
+- ECS 需長期運行 container，成本較高
+
+---
 # 2025-06-20 筆記
 
 ## ❓ 題目：會計資料遷移至 AWS 受管服務（需支援不可變與加密驗證記錄）
