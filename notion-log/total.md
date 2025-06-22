@@ -1,3 +1,188 @@
+# 2025-06-22 筆記
+
+🏢 AWS Organizations：讓 R&D 部門脫離母企業建立新組織的正確遷移方式
+
+📌 題目重點
+
+- 公司目前在 AWS Organizations 中有 5 個 OU
+
+- R&D 單位即將獨立，需擁有自己的新 AWS Organization
+
+- 已為 R&D 建立新的 管理帳號（management account）
+
+✅ 正確答案
+
+B. Invite the R&D AWS account to be part of the new organization after the R&D AWS account has left the prior organization
+
+🔍 選項解析
+
+🧭 正確流程補充說明
+
+要讓某個 AWS 帳號從 A 組織遷移到 B 組織，應遵循以下步驟：
+
+從原組織移除帳號
+
+從新組織的管理帳號發出邀請
+
+在 R&D 帳號中接受邀請
+
+✅ 結論
+
+選項 B 符合 AWS Organizations 的設計與限制，且是最簡單、合法且低風險的遷移方式。
+
+🧱 [CloudFormation & IAM] EC2 安全存取 DynamoDB 的最佳方式
+
+📌 題目背景
+
+- 使用 CloudFormation 建立三層式應用（Web Tier / App Tier / DynamoDB）
+
+- Web/App Tier 部署在 EC2 上
+
+- DynamoDB 層不可公開存取
+
+- 要讓 EC2 讀寫 DynamoDB，但 不能暴露 API 金鑰
+
+✅ 正確答案：
+
+B. Create an IAM role that has the required permissions to read and write from the DynamoDB tables. Add the role to the EC2 instance profile, and associate the instance profile with the application instances
+
+🧠 詳細解析
+
+🏁 結論
+
+選項 B 符合最佳實踐：EC2 使用 IAM Role 搭配 Instance Profile 來安全存取 DynamoDB，不需管理金鑰，也避免資訊外洩風險。
+
+📦 [S3 Access Control] 多個 Vendor 存取 S3 Bucket 需最小權限設計
+
+📌 題目需求
+
+- 有多個 vendor AWS 帳號要下載公司存在 S3 的物件
+
+- 公司希望這些帳號擁有最小必要權限（minimum access）
+
+- 要有最低操作負擔（least operational overhead）
+
+✅ 正確答案：
+
+C. Create a cross-account IAM role that has a read-only access policy specified for the IAM role
+
+🧠 詳細解析
+
+🛠 Cross-Account IAM Role 架構
+
+Vendor AWS Account
+
+↓ assume role
+
+Company AWS Account (S3 bucket 所在)
+
+↳ IAM Role (with S3 read-only policy)
+
+↳ S3 Bucket (with trust policy allowing assumeRole)
+
+☑ 步驟概要：
+
+公司端建立 IAM Role
+
+Vendor 使用 STS AssumeRole 存取資源
+
+🏁 結論
+
+選項 C 是最佳實務做法，符合以下條件：
+
+- 安全性高：只允許指定 vendor assume role
+
+- 最小權限：只給 GetObject
+
+- 操作負擔低：集中管理角色與政策即可
+
+☁️ [EC2 DR Strategy] 在 Failover 區域中確保 EC2 容量的災難復原策略
+
+📌 題目需求
+
+- 設計 Disaster Recovery（DR）策略
+
+- 要在 Failover AWS Region 中確保有足夠的 EC2 容量
+
+- 必須保證容量（must meet capacity）
+
+✅ 正確答案：
+
+D. Purchase a Capacity Reservation in the failover Region
+
+🧠 詳細解析
+
+🧾 Capacity Reservation 是什麼？
+
+- 預先保留 EC2 實體容量
+
+- 可與 On-Demand / RI / Savings Plan 並用
+
+- 避免 failover 時高峰期啟動失敗
+
+🔐 關鍵特性：
+
+- 保留指定 AZ、instance type 的 實體資源
+
+- 確保需要時可以立即啟動 EC2 實例
+
+- 適合用於災難復原、HPC 等場景
+
+🏁 結論
+
+若企業要求 failover region 一定要有可用的 EC2 資源，則：
+
+- 只有 Capacity Reservation 能保證容量可用
+
+- 是設計災難復原策略的 唯一正確選擇
+
+✅ 選項 D 是正確答案。
+
+☁️ [S3 Global Secure Sharing] 公司全球員工資料收集與分享的安全解法
+
+📌 題目需求
+
+- 公司需將研究資料收集並存至 Amazon S3
+
+- 全球員工可安全存取資料
+
+- 解法必須是安全、低操作負擔（minimal operational overhead）
+
+✅ 正確答案：
+
+A. Use an AWS Lambda function to create an S3 presigned URL. Instruct employees to use the URL
+
+🧠 詳細解析
+
+🧾 為何選 A？
+
+🔐 S3 Presigned URL 優點：
+
+- 時效性：可設定過期時間
+
+- 最小權限：僅限特定物件、操作（如上傳、下載）
+
+- 低維運：無需建 IAM 帳號與密碼
+
+- 適合全球用戶：透過 HTTPS 存取即可，不受平台限制
+
+⚙️ Lambda 實作方式：
+
+- 使用 IAM 角色給 Lambda 存取 S3 權限
+
+- 依需求產生 getObject 或 putObject 的預簽網址
+
+- 透過前端系統或 API 傳送 URL 給用戶
+
+🏁 結論
+
+若公司想用最低維運成本、高安全性方式將 S3 資料分享給全球員工：
+
+- S3 Presigned URL + Lambda 自動產生 是最佳選擇
+
+✅ 選項 A 為正確答案。
+
+---
 # 2025-06-21 筆記
 
 ## ✅ RDS PostgreSQL 提供資料科學家近即時唯讀存取的高可用架構
