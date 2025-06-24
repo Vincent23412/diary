@@ -1,3 +1,176 @@
+# 2025-06-24 筆記
+
+📘 題目整理：公開文件不可修改/刪除
+
+❓ 題目：
+
+一間律師事務所需向大眾公開數百個檔案。這些檔案必須在指定的未來日期前「不能被修改或刪除」，且「所有人都可以讀取」。哪一個方案最安全、符合需求？
+
+各選項分析：
+
+🅰️ 選項 A
+
+Upload all files to an Amazon S3 bucket that is configured for static website hosting. Grant read-only IAM permissions to any AWS principals that access the S3 bucket until the designated date.
+
+❌ 錯誤原因：
+
+- ✅ Static website hosting 可公開資料。
+
+- ❌ 僅用 IAM 權限 無法保證資料不被刪除或改寫。
+
+- 
+
+- ❌ 沒有使用 S3 Object Lock，無法符合「不可修改/刪除」的需求。
+
+🅱️ 選項 B ✅✅✅（正確）
+
+Create a new Amazon S3 bucket with S3 Versioning enabled. Use S3 Object Lock with a retention period in accordance with the designated date. Configure the S3 bucket for static website hosting. Set an S3 bucket policy to allow read-only access to the objects.
+
+✅ 為什麼正確：
+
+- ✅ S3 Object Lock + Versioning 可以設定保留期，在此期間禁止修改/刪除。
+
+- ✅ 可用 Bucket Policy 設定所有人皆可讀取（public read）。
+
+- ✅ 達成題目要求的「最安全、不可修改、可公開讀取」條件。
+
+- ✅ 使用 static website hosting，可公開提供檔案。
+
+🅲 選項 C
+
+Create a new Amazon S3 bucket with S3 Versioning enabled. Configure an event trigger to run an AWS Lambda function in case of object modification or deletion. Configure the Lambda function to replace the objects with the original versions from a private S3 bucket.
+
+❌ 錯誤原因：
+
+- ❌ 此方法是事後修補，而非事前預防。
+
+- ❌ Lambda 事件觸發有延遲風險，可能來不及恢復資料。
+
+- ❌ 若資料遭到刪除並完全覆蓋，Lambda 無法恢復已遺失資料。
+
+- ❌ 操作與維護成本高（需維護觸發器 + Lambda 邏輯 + 備份機制）。
+
+🅳 選項 D
+
+Upload all files to an Amazon S3 bucket that is configured for static website hosting. Select the folder that contains the files. Use S3 Object Lock with a retention period in accordance with the designated date. Grant read-only IAM permissions to any AWS principals that access the S3 bucket.
+
+❌ 錯誤原因：
+
+- ❌ S3 Object Lock 只能針對「個別物件」設定，不能針對整個 folder。
+
+- ❌ 選定 folder 無法鎖定其中所有物件，可能遺漏或未涵蓋。
+
+- ❌ 使用 IAM read-only 權限雖然限制了大多數存取，但仍無法像 Object Lock 一樣保障不可刪改。
+
+- ❌ 依賴 folder 層級設定會產生誤區，非 AWS 支援的控制範圍。
+
+📝 小結比較表：
+
+## ❓ 題目：三層式 Web 應用程式的快取策略選擇
+
+一家公司在 AWS 上託管一個三層式 Web 應用程式，使用 Multi-AZ Amazon RDS for MySQL 作為資料庫層，Amazon ElastiCache 作為快取層。公司希望在「客戶將項目新增到資料庫時」，快取也會同時新增或更新資料。要求快取中的資料必須永遠與資料庫資料一致。
+
+### ✅ 正確答案：
+
+B. Implement the write-through caching strategy
+
+### ✅ 為什麼選 B（Write-through Caching Strategy）？
+
+- 寫入資料庫時，同步將資料寫入快取。
+
+- 保證快取和資料庫的資料一致性。
+
+- 最適合需要即時同步資料的情境（如本題）。
+
+### ❌ 其他選項錯誤原因
+
+### A. Lazy loading caching strategy（惰性載入）
+
+- 僅在快取未命中（cache miss）時，才從資料庫讀取並寫入快取。
+
+- 不會在資料新增時自動更新快取。
+
+- ❌ 無法保證資料一致性。
+
+### C. Adding TTL caching strategy
+
+- 快取資料會設定有效時間（Time to Live），過期後再查詢資料庫。
+
+- 無法立即反映資料庫的變動。
+
+- ❌ 不能確保快取資料同步更新。
+
+### D. AWS AppConfig caching strategy
+
+- AppConfig 主要用於應用程式設定的動態管理與部署。
+
+- 並非用於資料快取的策略。
+
+- ❌ 不適合本題要求的快取更新需求。
+
+### 📌 策略比較表
+
+👉 選擇 B 能確保資料在資料庫與快取中一致，是本題最佳解。
+
+## ❓ 題目：將 100 GB 歷史資料加密傳輸到 Amazon S3，選擇最低操作負擔的方式
+
+一家公司要從本地端搬移 100 GB 歷史資料到 Amazon S3，並確保「傳輸過程中資料加密」。本地網路為 100 Mbps。新資料將直接儲存於 S3。需選出 最少操作負擔（LEAST operational overhead） 的方法。
+
+### ✅ 正確答案：
+
+B. Use AWS DataSync to migrate the data from the on-premises location to an S3 bucket
+
+### ✅ 為什麼選 B（AWS DataSync）？
+
+- 內建加密傳輸（TLS），符合「加密傳輸」要求。
+
+- 完全托管、支援增量同步與錯誤重試，可最小化人工作業。
+
+- 不需手動建立 VPN、硬碟寄送或管理 CLI 工具與腳本。
+
+- 適合資料量中等（如 100 GB）的遷移任務，操作簡單，維護負擔低。
+
+### ❌ 其他選項錯誤原因
+
+### A. Use s3 sync in AWS CLI
+
+- 雖然可加密（因為使用 HTTPS 上傳），但：
+
+### C. Use AWS Snowball
+
+- 適用於 TB~PB 級資料遷移。
+
+- 運送裝置成本高、流程較繁瑣。
+
+- ❌ 對 100 GB 而言過度複雜，不符合「最少操作負擔」。
+
+### D. 建立 IPsec VPN + 使用 s3 cp
+
+- VPN 建立與維運需較多設定與監控。
+
+- 還要自己處理 CLI 傳輸與錯誤處理。
+
+- 雖符合加密要求，但 ❌ 操作負擔更高。
+
+### 📝 總結
+
+👉 選擇 B 可兼顧安全與操作簡便，是最佳選項。
+
+使用 AWS CLI（如 aws s3 cp 或 aws s3 sync）與使用 AWS DataSync 在移動資料到 Amazon S3 時有以下幾個 關鍵差異，這些差異影響操作負擔、安全性、效能、彈性與錯誤處理能力：
+
+✅ 1.
+
+操作自動化與錯誤處理
+
+✅ 2.
+
+效能與最佳化
+
+✅ 3.
+
+安全性與管理簡便性
+
+---
 # 2025-06-22 筆記
 
 🏢 AWS Organizations：讓 R&D 部門脫離母企業建立新組織的正確遷移方式
