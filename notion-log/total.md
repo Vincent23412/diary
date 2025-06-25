@@ -1,3 +1,202 @@
+# 2025-06-25 筆記
+
+這題目要找的是：
+
+- 最快速（FASTEST） 聚合方式
+
+- 每個地點每天產生 500 GB 資料
+
+- 全球多個站點、但分析應用只在單一 AWS Region
+
+- 各地點都有高速網路
+
+各選項分析：
+
+A. ✅ S3 Transfer Acceleration + Multipart Uploads
+
+- Transfer Acceleration：
+
+- 
+
+- Multipart Upload：
+
+- 
+
+- ✅ 此選項直接將大量資料上傳至目標 S3 bucket，最快、最直接、全自動
+
+B. 上傳到鄰近 Region，再用 S3 跨區複製
+
+- S3 跨區複製是異步操作，通常會有延遲（幾分鐘～小時）
+
+- 雖然可以分散流量、提升區域寫入效率，但增加了中轉等待時間
+
+- ❌ 不是最快速的聚合方式
+
+C. 每天用 AWS Snowball + 跨區複製
+
+- Snowball 是為了 低網速 or 離線傳輸（數 TB～PB） 設計
+
+- 題目明說有 高速網路，不需要用 Snowball
+
+- ❌ 傳輸時間包含寄送、上架、處理等作業，絕對不是最快方式
+
+D. 上傳至 EC2 → 存 EBS → 快照 → 複製快照 → 還原分析
+
+- 流程太長（至少 4 個步驟），操作複雜且時間拖延
+
+- EBS snapshot 跨區複製也不是即時操作
+
+- ❌ 不是最快，也不是推薦的做法
+
+✅ 最佳選項：
+
+A. Enable Amazon S3 Transfer Acceleration on the destination bucket. Use multipart uploads to directly upload site data to the destination bucket.
+
+💡 簡要理由：
+
+- Transfer Acceleration 能透過最近的 Edge Location 傳送到 S3 原區域，減少網路延遲與封包丟失
+
+- Multipart Upload 能有效處理 大檔案（>100 MB~數百 GB），加速上傳速度
+
+- 無需中轉、無需實體設備、無需手動流程
+
+這題要找的是：
+
+- 對儲存在 Amazon S3 中的 JSON logs 進行查詢
+
+- 查詢為 簡單的 SQL 語句
+
+- 為了 即時需求（on-demand）
+
+- 重點：最少的操作負擔（LEAST operational overhead）
+
+各選項分析：
+
+A. Amazon Redshift
+
+- 屬於資料倉儲服務，需先將資料 ETL 匯入 Redshift
+
+- 適合處理結構化資料與大型查詢，但導入需要：
+
+- 
+
+- ❌ 相對複雜，不符合「最少改動」與「on-demand」需求
+
+B. CloudWatch Logs + SQL 查詢
+
+- CloudWatch Logs 本身不提供 SQL 查詢功能
+
+- 可以做搜尋或過濾，但無法針對 JSON 結構執行完整 SQL 分析
+
+- ❌ 不支援這種 JSON 結構化查詢，功能不符
+
+C. ✅ Amazon Athena 直接查詢 S3 JSON
+
+- Athena 是基於 Presto 的 serverless SQL 查詢服務
+
+- 可直接查詢 S3 上的 JSON、CSV、Parquet 等檔案
+
+- 搭配 AWS Glue Data Catalog 可更容易管理 schema（也可手動定義）
+
+- ✅ 不需移動資料、不需 ETL、serverless、操作負擔極低
+
+- ✅ 非常適合用來對 logs 做 on-demand SQL 分析
+
+D. AWS Glue + Amazon EMR + Spark SQL
+
+- Spark 本身查詢效能高，但：
+
+- 
+
+- ❌ 成本高、維運負擔重，不符合「最少操作」條件
+
+✅ 正確答案：
+
+C. Use Amazon Athena directly with Amazon S3 to run the queries as needed
+
+🔎 加分補充：
+
+- 若 logs 儲存在像這樣的結構化 JSON 檔：
+
+{
+
+"timestamp": "2025-06-24T12:00:00Z",
+
+"level": "INFO",
+
+"message": "User login success",
+
+"userId": "abc123"
+
+}
+
+- 
+
+- 你只需要：
+
+- 
+
+SELECT userId, COUNT(*)
+
+FROM logs
+
+WHERE level = 'ERROR'
+
+GROUP BY userId;
+
+這題的關鍵需求是：
+
+- 公司透過 AWS Organizations 管理多個 AWS 帳號
+
+- 有一個 S3 bucket 在管理帳號中，用來存放報告
+
+- 想要 限制只有 AWS Organizations 內部的帳號能存取這個 bucket
+
+- 強調：最少的操作負擔（LEAST operational overhead）
+
+各選項分析：
+
+A. ✅ 使用 aws:PrincipalOrgID 條件鍵設在 S3 Bucket Policy
+
+- aws:PrincipalOrgID 是 AWS 提供的 全域條件鍵
+
+- 可用於 IAM policy 或 S3 bucket policy 中，限制只有來自指定 AWS Organizations 的帳號才能存取資源
+
+- ✅ 無需針對每個帳號、每個使用者逐一設定
+
+- ✅ 組織中有新帳號加入也會自動套用條件
+
+- ✅ 最少維運成本，最簡單實作
+
+📌 範例 Bucket Policy 範本：
+
+{
+
+"Version": "2012-10-17",
+
+"Statement": [
+
+{
+
+"Sid": "AllowAccessToMyOrg",
+
+"Effect": "Allow",
+
+"Principal": "*",
+
+"Action": "s3:*",
+
+"Resource": [
+
+"arn:aws:s3:::my-org-bucket",
+
+"arn:aws:s3:::my-org-bucket/*"
+
+],
+
+"Condition": {
+
+---
 # 2025-06-24 筆記
 
 📘 題目整理：公開文件不可修改/刪除
