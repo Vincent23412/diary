@@ -1,3 +1,180 @@
+# 2025-06-26 筆記
+
+✅ 題目重點：
+
+- 公司 EC2 成本上升
+
+- 發現有幾台 EC2 出現 不必要的垂直擴展（vertical scaling）
+
+- 需求：
+
+- 
+
+✅ 各選項解析：
+
+A. Use AWS Budgets
+
+- ❌ AWS Budgets 是用來設定預算與通知，不提供深入歷史分析或按 Instance Type 的視覺化工具
+
+- 不適合用來「追查成本異常」
+
+B. ✅ Use Cost Explorer’s granular filtering feature to perform an in-depth analysis of EC2 costs based on instance types
+
+- ✅ Cost Explorer 支援按 EC2 服務 → instance type → month/day 維度分析
+
+- ✅ 內建圖表功能，可視覺化近 2 個月成本變化
+
+- ✅ 操作簡單，不需額外設定或寫程式
+
+- ✅ 最低操作負擔的選項
+
+C. Use AWS Billing and Cost Management dashboard
+
+- ❌ 此功能提供的是整體成本摘要
+
+- 雖有圖表，但過於粗略，不支援深入 drill down 到 instance type 層級
+
+- ✘ 不足以找出根因（root cause）
+
+D. Use Cost and Usage Reports (CUR) + S3 + QuickSight
+
+- ✅ 能做到非常深入的自定義分析
+
+- ❌ 需要設定：
+
+- 
+
+- 操作負擔高，不符合「最小操作負擔」的要求
+
+✅ 正確答案：
+
+B. Use Cost Explorer’s granular filtering feature to perform an in-depth analysis of EC2 costs based on instance types
+
+📌 補充：Cost Explorer 可進行的分析維度
+
+- Service（Amazon EC2）
+
+- Instance Type（如 t3.large, m5.xlarge）
+
+- Linked Account
+
+- Usage Type（按小時計費）
+
+- Time (monthly, daily)
+
+- Region
+
+AWS 成本相關服務總整理
+
+🎯 建議用途地圖
+
+✅ A. Turn on AWS Config with the appropriate rules.
+
+✅ 為什麼選 A：AWS Config + 規則
+
+- AWS Config 可以持續追蹤資源的設定變更，並記錄歷史狀態。
+
+- 對於 Amazon S3，你可以設定以下 Config 規則，例如：
+
+- 
+
+🔍 用途：當 S3 bucket 的設定被未經授權的變更（如開放 public read、關閉加密），Config 會偵測並標示為「non-compliant」，可搭配 SNS、EventBridge 發警告。
+
+❌ B. AWS Trusted Advisor
+
+- Trusted Advisor 是用來檢查常見的設定最佳化（如安全性、成本、可用性等）。
+
+- 不會持續監控設定變化，而且很多安全檢查僅開放給 Business/Enterprise 支援等級帳戶。
+
+- 不適合用來審查持續變動的資源配置變更
+
+❌ C. Amazon Inspector
+
+- Inspector 是做 漏洞掃描與安全評估，主要針對：
+
+- 
+
+- 與 S3 設定無關
+
+❌ D. S3 Server Access Logging + EventBridge
+
+- Access Logging 是記錄誰「存取 S3 物件」，不是「修改設定」
+
+- EventBridge 無法直接觸發設定變更事件（Config 才能追蹤設定歷史）
+
+✅ 結論
+
+🔍 AWS 設定與安全審查類型服務一覽
+
+🧩 實際應用場景舉例
+
+✅ S3 Bucket 安全監控與合規
+
+- 使用 AWS Config：
+
+- 
+
+✅ 檢查是否有安全風險資源
+
+- 使用 Trusted Advisor (免費項目)：
+
+- 
+
+✅ 檢查 EC2 是否存在漏洞
+
+- 使用 Amazon Inspector：
+
+- 
+
+✅ 自動修正策略（Auto Remediation）
+
+- 組合：AWS Config + Systems Manager Automation
+
+- 
+
+✅ 哪些服務免費？
+
+❓ 題目重述與需求解析
+
+A company is migrating applications to AWS. The applications are deployed in different accounts. The company manages the accounts centrally by using AWS Organizations. The company’s security team needs a single sign-on (SSO) solution across all the company’s accounts. The company must continue managing the users and groups in its on-premises self-managed Microsoft Active Directory.
+
+✅ 題目要點拆解：
+
+多個 AWS 帳號（Accounts）：表示未來登入操作需支援跨帳號。
+
+使用 AWS Organizations 管理：代表帳號已統一控管，可以與 SSO 整合。
+
+希望有 SSO（Single Sign-On）解決方案：即一個登入入口可以操作多個帳號。
+
+使用者與群組維持在本地的 Microsoft Active Directory（on-prem AD）管理：身份來源（identity source）不在 AWS，需要整合。
+
+🎯 關鍵需求總結：
+
+- 要跨帳號 SSO
+
+- 要與 AWS 原生整合（因為已用 Organizations）
+
+- 要沿用現有的本地 AD 身份系統
+
+- 要選擇維運負擔最小的方式
+
+✅ 正確答案：
+
+A. Enable AWS Single Sign-On (AWS SSO) from the AWS SSO console. Create a one-way forest trust or a one-way domain trust to connect the company’s self-managed Microsoft Active Directory with AWS SSO by using AWS Directory Service for Microsoft Active Directory.
+
+🔍 為什麼選 A？
+
+- AWS SSO（現在叫 AWS IAM Identity Center） 是提供跨帳號單一登入的最佳原生工具。
+
+- 要從本地 Active Directory 同步身份資訊進 AWS，需要透過：
+
+- 
+
+- 一旦信任建立，AWS SSO 就可以讀取 on-prem AD 的使用者和群組，並授予他們跨帳號的訪問權限。
+
+❌ 其他選項錯誤解析：
+
+---
 # 2025-06-25 筆記
 
 這題目要找的是：
