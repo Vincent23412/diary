@@ -1,3 +1,200 @@
+# 2025-06-27 筆記
+
+題目解析：
+
+公司正在開發一個應用程式，透過 REST API 提供訂單運送統計資料。目標是：
+
+- 每天早上固定時間
+
+- 從應用的 API 提取資料
+
+- 整理成 可讀的 HTML 報告
+
+- 用 email 寄送 給多人
+
+選項分析：
+
+A. Configure the application to send the data to Amazon Kinesis Data Firehose.
+
+- ❌ 不適合
+
+- Kinesis Firehose 適合用於持續的資料串流輸出到 S3、Redshift 等目的地，非用來每日定時產生報告。
+
+- 不符合「每天早上一次性提取 + email 報告」的需求。
+
+B. Use Amazon Simple Email Service (Amazon SES) to format the data and to send the report by email.
+
+- ✅ 部分正確
+
+- Amazon SES 能用來 發送 email，但不負責「格式化」資料。格式化通常是 Lambda 處理。
+
+- 不過在整體流程中，用 SES 發送 HTML 報告 非常合適。
+
+C. Create an Amazon EventBridge (Amazon CloudWatch Events) scheduled event that invokes an AWS Glue job to query the application’s API for the data.
+
+- ❌ 不適合
+
+- AWS Glue 是為資料處理（如 ETL 或從資料湖中分析）設計的，不適合用來呼叫 REST API 並處理 HTML 格式資料。
+
+- 呼叫 API 並格式化輸出報告，應由 Lambda 處理。
+
+D. Create an Amazon EventBridge (Amazon CloudWatch Events) scheduled event that invokes an AWS Lambda function to query the application’s API for the data.
+
+- ✅ 正確
+
+- EventBridge 可設定 每日定時觸發
+
+- Lambda 可負責：
+
+- 
+
+E. Store the application data in Amazon S3. Create an Amazon Simple Notification Service (Amazon SNS) topic as an S3 event destination to send the report by email.
+
+- ❌ 不適合
+
+- S3 的 SNS 通知通常是「檔案上傳時自動通知」，不適合每日定時產出報告後發送。
+
+- 而且 SNS 也無法寄送 HTML 郵件內容（只能通知訊息，不是報告形式）。
+
+✅ 正確組合：
+
+- B. 用 Amazon SES 寄送報告 email
+
+- D. 用 EventBridge 定時呼叫 Lambda，從 API 抓資料並整理 HTML 報告
+
+額外提示：
+
+完整流程如下：
+
+EventBridge 設定每日定時事件
+
+Lambda function：
+
+這題考的是如何使用自定網域名 (custom domain name) 和 HTTPS 憑證 (SSL/TLS) 來公開 Amazon API Gateway 的 Regional endpoint，並透過 Route 53 設定對應的 DNS 記錄。
+
+✅ 題目需求解析：
+
+- API Gateway 在 ca-central-1。
+
+- 需要讓第三方服務透過自家網域 HTTPS 存取 API Gateway。
+
+- 已經有自己的 domain name 註冊在 Route 53。
+
+- 想使用公司的 domain name + HTTPS 憑證。
+
+✅ 正確做法的步驟是：
+
+在 API Gateway 中建立 Regional endpoint（這題指定了在 ca-central-1）。
+
+在 ACM（同一個區域）中匯入或建立與公司網域對應的公有憑證。
+
+在 API Gateway 建立 Custom Domain Name 並綁定憑證。
+
+使用 Route 53 建立 DNS 記錄，指向這個 Custom Domain Name 所對應的 API Gateway endpoint。
+
+❌ 選項錯誤分析：
+
+A. 使用 stage variables 並匯入憑證
+
+- ✖️ stage variables 是用來控制 Lambda alias 或 endpoint path，不是設計來變更 domain name。
+
+- ✖️ 不會影響 API Gateway endpoint 的 URL。
+
+- ➤ 錯誤用法。
+
+B. 將憑證匯入 us-east-1，並用 alias 指向 API Gateway Regional endpoint
+
+- ✖️ Regional API Gateway 必須要在「相同區域」內使用 ACM 憑證（也就是 ca-central-1），us-east-1 只對 edge-optimized endpoint 有用。
+
+- ➤ 錯誤區域，會導致憑證無法綁定。
+
+D. 憑證在 us-east-1，指向自己的 domain name
+
+- ✖️ 一樣問題：ACM 憑證區域錯誤（只適用於 CloudFront / edge-optimized API）。
+
+- ✖️ 建立 A 記錄並不會直接指向 API Gateway 的 custom domain。
+
+- ➤ 邏輯混亂、設定錯誤。
+
+✅ 正確答案：
+
+C. Create a Regional API Gateway endpoint. Associate the API Gateway endpoint with the company’s domain name. Import the public certificate associated with the company’s domain name into AWS Certificate Manager (ACM) in the same Region. Attach the certificate to the API Gateway endpoint. Configure Route 53 to route traffic to the API Gateway endpoint.
+
+- ✅ 使用 Regional API Gateway endpoint。
+
+- ✅ ACM 憑證在正確的區域：ca-central-1。
+
+- ✅ 綁定 custom domain name。
+
+- ✅ Route 53 設定對應 alias record。
+
+✅ 正解：
+
+C.
+
+這題是關於如何過濾圖片中的不當內容，需求如下：
+
+- 圖片由使用者上傳。
+
+- 需偵測是否有不當內容。
+
+- 希望最小化開發成本與工作量（minimize development effort）。
+
+各選項說明：
+
+A. Use Amazon Comprehend to detect inappropriate content.
+
+- ❌ 錯誤。Amazon Comprehend 是用來做文字自然語言處理（NLP），無法處理圖片。
+
+B. Use Amazon Rekognition to detect inappropriate content. Use human review for low-confidence predictions.
+
+- ✅ 正確。Amazon Rekognition 是專門的影像與影片分析服務，可以直接偵測出不當內容（例如暴力、裸露等）。
+
+- 它提供一個預先訓練好的模型，能夠辨識是否包含不適當內容。
+
+- 並且可與 Amazon Augmented AI (A2I) 整合，在辨識信心不足時呼叫人工審查。
+
+- 符合最小開發工作量的需求。
+
+C. Use Amazon SageMaker to detect inappropriate content.
+
+- ❌ 錯誤。SageMaker 是訓練與部署自訂機器學習模型的服務，需要自行準備訓練資料與模型架構，開發成本高。
+
+D. Use AWS Fargate to deploy a custom machine learning model…
+
+- ❌ 錯誤。使用 Fargate 與自建模型開發與部署會增加系統設計與維運負擔，與最小開發工作量的需求相違。
+
+✅ 正確答案：
+
+B. Use Amazon Rekognition to detect inappropriate content. Use human review for low-confidence predictions.
+
+這題的目標是：強制所有網站流量都使用 HTTPS，也就是將 HTTP 請求自動導向 HTTPS。
+
+各選項分析：
+
+A. Update the ALB’s network ACL to accept only HTTPS traffic
+
+- ❌ 錯誤：Network ACL 是針對 VPC 子網的低層防火牆控制，不能自動重導 URL，也無法提供「轉址」功能。
+
+B. Create a rule that replaces the HTTP in the URL with HTTPS
+
+- ❌ 錯誤：沒有這種在 ALB 層級直接修改 URL protocol 的規則。URL protocol (http://) 是在 client-side 被指定的。
+
+C. Create a listener rule on the ALB to redirect HTTP traffic to HTTPS
+
+- ✅ 正確：這是最常見且推薦的方式：
+
+- 
+
+D. Replace the ALB with a Network Load Balancer configured to use Server Name Indication (SNI)
+
+- ❌ 錯誤：NLB 是第 4 層（L4）負載平衡器，不支援重導，也不支援 SNI 的應用層重導控制。
+
+✅ 正確答案：
+
+C. Create a listener rule on the ALB to redirect HTTP traffic to HTTPS.
+
+---
 # 2025-06-26 筆記
 
 ✅ 題目重點：
