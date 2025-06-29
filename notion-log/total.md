@@ -1,3 +1,196 @@
+# 2025-06-29 筆記
+
+✅ 正確答案為：B. 安裝 AWS DataSync agent 在 on-premises 資料中心 和 E. 使用 AWS DataSync 建立 on-premises SFTP server 的 location 設定
+
+✅ 題目重點拆解：
+
+- 原始資料儲存在 on-prem SFTP server 上，並使用 NFS 檔案系統
+
+- 要遷移至 AWS 上的 EC2 + EFS 架構中
+
+- 要 自動化遷移資料
+
+- 資料量為 200 GB
+
+✅ 正確答案解析：
+
+B. Install an AWS DataSync agent in the on-premises data center
+
+- DataSync 可用於從 on-prem NFS/SFTP 來源自動遷移資料至 AWS（例如 EFS）
+
+- 它透過安裝在本地的 agent 來處理與 AWS 的連線與資料搬移
+
+E. Use AWS DataSync to create a suitable location configuration for the on-premises SFTP server
+
+- 在使用 DataSync 時，你需要設定來源與目的地的 Location，例如：
+
+- 
+
+這兩步搭配即可讓 DataSync 自動搬移資料到 EC2 掛載的 EFS 檔案系統。
+
+❌ 錯誤選項解析：
+
+✅ 結論：
+
+使用 AWS DataSync 是最佳且官方推薦的方式來自動從 on-prem NFS 或 SFTP 系統將資料遷移到 AWS EFS。這可以確保安全性、效率與最低的操作負擔。
+
+✔️ 正確答案：B 和 E
+
+✅ 正確答案：A. Edit the job to use job bookmarks.
+
+✅ 題目重點：
+
+- AWS Glue 每天執行一次 ETL Job，處理 S3 中的 XML 檔案
+
+- 每天都有新增資料
+
+- 問題是：每次都重新處理全部資料
+
+- 目標是：避免重複處理舊資料
+
+✅ 解法解析：
+
+A. 使用 Glue Job Bookmarks
+
+- Job Bookmarks 是 AWS Glue 的一個功能，會追蹤上一個 job 執行時所處理的資料集。
+
+- 下次執行時只會處理 新增加或修改的資料。
+
+- 非常適合這種每天跑、資料會累積但舊資料不需要重處理的情境。
+
+❌ 錯誤選項解析：
+
+✅ 結論：
+
+若想讓 AWS Glue 每次只處理新增資料，最有效、最符合 AWS 實務的做法就是 開啟 Job Bookmarks。
+
+✔️ 正確答案：A. Edit the job to use job bookmarks.
+
+當然，我來幫你詳細說明一下選項 C. Edit the job by setting the NumberOfWorkers field to 1.
+
+🔹 選項 C 的意思
+
+在 AWS Glue 中：
+
+- NumberOfWorkers 是設定 Glue Job 執行時要啟用的 DPU（Data Processing Units）數量 或 工作執行緒數量（視 Glue 的版本和模式而定）。
+
+- 把 NumberOfWorkers 設成 1，代表只用 一個執行單位 處理資料，會讓 Glue job 的處理速度變慢，但也可以節省成本。
+
+⚠️ 為什麼這不是正確答案？
+
+這個設定只會：
+
+- 影響 job 執行的 資源數量和執行速度
+
+- 不會改變資料的處理邏輯
+
+也就是說：
+
+Glue 還是會處理 所有 S3 中的 XML 檔案，只是變成一個 worker 慢慢處理而已。
+
+🧠 額外補充：那什麼情況要調整
+
+NumberOfWorkers
+
+？
+
+你可以根據以下狀況調整它：
+
+- 如果資料量不大、執行時間允許，可降低 NumberOfWorkers 來節省費用。
+
+- 如果資料量大，處理時間過長，則可以提高 NumberOfWorkers 來加快處理速度。
+
+但這與「避免重複處理舊資料」無關。
+
+✅ 結論：
+
+- NumberOfWorkers 是資源設定，不會影響處理哪些資料
+
+- 因此，選項 C 不能解決每次重複處理資料的問題
+
+正確做法還是使用 Glue 的 Job Bookmarks（選項 A） 來追蹤和跳過已處理過的資料。
+
+正確答案是：
+
+✅ A. Use AWS Shield Advanced to stop the DDoS attack.
+
+✅ C. Configure the website to use Amazon CloudFront for both static and dynamic content.
+
+✅ A. Use AWS Shield Advanced
+
+- AWS Shield Advanced 提供針對 大規模 DDoS 攻擊 的進階保護功能，例如 TCP SYN floods、UDP reflection、HTTP floods。
+
+- 它可與 CloudFront、ALB、EC2、Route 53 整合。
+
+- 具備自動偵測、自動緩解、大量 IP 封鎖、以及 DDoS 攻擊事件通知。
+
+➡ 這是針對 DDoS 的首選解決方案。
+
+✅ C. Configure the website to use Amazon CloudFront
+
+- CloudFront 是 AWS 的 CDN，可作為網站的前置代理（edge layer）：
+
+- 
+
+- CloudFront 也整合了 AWS Shield Standard（免費），提供額外的 DDoS 保護。
+
+➡ CloudFront 作為前線防禦，可減少 EC2 直接面對攻擊。
+
+❌ B. Amazon GuardDuty
+
+- GuardDuty 是一種 威脅偵測服務，可以識別惡意行為（如可疑 IP）。
+
+- 但 不會自動封鎖攻擊，需要手動處理或搭配 Lambda automation。
+
+- 適合用來 警示與後續調查，但無法即時自動防禦 DDoS。
+
+❌ D. Lambda function 自動加黑名單
+
+- 雖然技術上可用 Lambda 自動更新 NACL，但：
+
+❌ E. 使用 EC2 Spot Instances 和 Auto Scaling
+
+- Spot instances 雖然便宜，但並 不適合用在重要的、高可用的網站前台
+
+- 而且 Auto Scaling 不能緩解 DDoS 攻擊本身，只能被動擴容應對高流量。
+
+✅ 結論
+
+若要對抗大型 DDoS 且確保零停機：
+
+- 使用 AWS Shield Advanced 提供 DDoS 防護（A）
+
+- 配置 CloudFront 作為前線防禦與快取加速器（C）
+
+📘 題目說明：
+
+一家公司準備部署一個無伺服器（serverless）工作負載。
+
+解決方案架構師需要依照「最小權限原則」來設定 AWS Lambda 函數的權限。
+
+這個 Lambda 函數會被一個 Amazon EventBridge（或 CloudWatch Events）規則觸發。
+
+問題是：應該怎麼設置權限才能符合這個需求？
+
+🔍 題目關鍵點拆解：
+
+- 使用 Lambda 函數。
+
+- Lambda 會被 EventBridge 規則觸發（也就是 EventBridge 要能「呼叫 Lambda」）。
+
+- 必須遵守「最小權限原則（Least Privilege Principle）」。
+
+- 問題核心是「如何正確地授權 EventBridge 觸發 Lambda」。
+
+✅ 正確答案：
+
+D.
+
+在 Lambda 函數上加入資源型政策（resource-based policy），
+
+授權動作為 lambda:InvokeFunction，principal 為 events.amazonaws.com。
+
+---
 # 2025-06-28 筆記
 
 ✅ 正確答案：B. Use AWS Backup to create backup schedules and retention policies for the table.
