@@ -1,3 +1,194 @@
+# 2025-07-01 筆記
+
+這題考的是：
+
+- 根據需求選擇合適的資料庫解決方案
+
+- 重點條件有：
+
+- 
+
+✅ 正確答案：
+
+A. Use Amazon DynamoDB with auto scaling. Use on-demand backups and Amazon DynamoDB Streams
+
+🔍 題目解析：
+
+✅ 為什麼選 A：
+
+❌ 為什麼其他選項不適合：
+
+B.
+
+Amazon Redshift
+
+- 用於 OLAP（分析型）工作負載，不適合以事務為主的應用程式
+
+- 不保證 < 5 小時的 RPO，且成本與運維較高
+
+C.
+
+Amazon RDS with Provisioned IOPS
+
+- 固定 IOPS 難以隨季節性變動自動調整，成本高
+
+- 雖可做 snapshot，但快照間隔太寬會風險過高；無內建 Streams 類似機制處理稽核紀錄
+
+D.
+
+Amazon Aurora MySQL with auto scaling
+
+- Aurora auto scaling 指的是讀取節點（Aurora Replica），寫入節點仍需固定設定
+
+- 雖支援稽核與備份，但沒有 DynamoDB 的高彈性與低維運特性
+
+- 不如 DynamoDB 更適合處理不穩定流量
+
+✅ 補充 DynamoDB 優勢：
+
+- Auto scaling 支援根據使用量自動擴展/收縮
+
+- On-demand backup 可隨時快照整張表
+
+- Streams 可以串接 AWS Lambda 實現自動稽核、異動追蹤
+
+- 無伺服器管理，低運維
+
+正確答案是：A. Use a cluster placement group. Attach a single Provisioned IOPS SSD Amazon Elastic Block Store (Amazon EBS) volume to all the instances by using Amazon EBS Multi-Attach
+
+✅ 題目關鍵需求重點：
+
+✅ 為什麼選 A 正確？
+
+- Cluster Placement Group
+
+- 
+
+- Amazon EBS Multi-Attach
+
+- 
+
+- Provisioned IOPS SSD (io1/io2)
+
+- 
+
+❌ 其他選項為什麼不對？
+
+B. Cluster placement + EFS
+
+- ❌ Amazon EFS 是 NFS 檔案系統（file-level storage）
+
+- ❌ 雖然可以共用，但效能不及 EBS + 多掛載，且延遲較高，不符合 最低 latency 要求
+
+C. Partition placement group + EFS
+
+- ❌ Partition PG 是針對大規模分區隔離的部署策略，不保證節點之間低延遲
+
+- ❌ 同樣 EFS 不符共享高效 block volume 要求
+
+D. Spread placement group + EBS Multi-Attach
+
+- ❌ Spread PG 強調 高可用性與容錯，將實例盡可能分開部署，會增加節點延遲
+
+- ❌ 不適用於 HPC 需要超低延遲通信的場景
+
+🧠 延伸補充
+
+若進一步追求 HPC 的極致效能，也可以考慮：
+
+- 使用 EC2 instances with Elastic Fabric Adapter (EFA)：提供 RDMA-like 通信能力
+
+- 配合 Amazon FSx for Lustre：提供 HPC 儲存系統選擇，比 EFS 更快的共享檔案存取效能
+
+✅ 總結：
+
+當我們討論 雲端與本地環境中的儲存系統 時，常見的三種主要儲存類型是：
+
+# 📦 儲存系統類型總覽
+
+# 🔹 Block Storage（區塊儲存）
+
+🔧 原理：
+
+- 將儲存設備分成「固定大小的區塊（block）」。
+
+- 沒有檔名、資料夾；由作業系統建立檔案系統（如 ext4, NTFS）來管理。
+
+💡 典型代表：
+
+- AWS：Amazon EBS
+
+- 本地：HDD、SSD、SAN
+
+✅ 優點：
+
+- 非常快的隨機讀寫速度（低延遲）
+
+- 適合資料庫、VM 映像檔、交換區、OS
+
+❌ 缺點：
+
+- 不支援多主機共享（除非特殊設計）
+
+- 儲存需要手動管理與格式化
+
+# 🔸 File Storage（檔案儲存 / NFS）
+
+🔧 原理：
+
+- 像傳統作業系統的檔案系統，有路徑與檔名結構。
+
+- 支援共享與協作使用。
+
+💡 典型代表：
+
+- AWS：Amazon EFS（NFS v4.1）、Amazon FSx
+
+- 本地：NAS（Network Attached Storage）
+
+✅ 優點：
+
+- 可多台機器同時掛載（共享存取）
+
+- 使用熟悉的 ls, cd, cp, mv 操作方式
+
+❌ 缺點：
+
+- 效能受限於網路延遲
+
+- 不適合大量隨機 I/O、高併發需求
+
+# 🟢 Object Storage（物件儲存）
+
+🔧 原理：
+
+- 將資料包裝成「物件」，每個物件有：
+
+- 
+
+- 不存在傳統的資料夾層級。
+
+💡 典型代表：
+
+- AWS：Amazon S3
+
+- GCP：Cloud Storage
+
+- Azure：Blob Storage
+
+✅ 優點：
+
+- 幾乎無限擴充、設計給網路存取
+
+- 適合備份、媒體、資料湖
+
+- 成本效益高，有 lifecycle 與冷儲存選項
+
+❌ 缺點：
+
+- 無檔案系統，不能用 ls, cat 操作
+
+---
 # 2025-06-30 筆記
 
 這題目考的是如何保護 S3 資源不被直接存取，同時又要能透過 CloudFront 發佈內容。
