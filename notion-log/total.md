@@ -1,3 +1,194 @@
+# 2025-07-05 筆記
+
+在 AWS 的災難復原（Disaster Recovery, DR）策略中，我們通常會根據 備援資源的啟動程度與即時性，將 DR 架構分為 4 個常見等級：
+
+🧊 1. Cold Standby（冷備援）🌡️最慢、最便宜
+
+- 備援環境完全不啟動
+
+- 僅備份資料（例如 S3、RDS snapshot）
+
+- 災難發生後才開始建立基礎設施（如 EC2、RDS）
+
+- ❌ RTO 高（從幾小時到幾天）
+
+- ✅ 成本最低
+
+🔦 2. Pilot Light（點火備援）🔥微啟動
+
+- 關鍵資源（例如資料庫）已啟動且持續更新，但其他資源未啟動
+
+- 災難發生時再啟動應用伺服器、負載平衡器等
+
+- ✅ RPO 低（資料即時備援）
+
+- ✅ 成本低，因為只保留最小關鍵資源
+
+- ⚠️ RTO 還是較高（需要啟動應用）
+
+♨️ 3. Warm Standby（溫備援）🌡️中間值
+
+- 備援區有一套完整但縮小規模的系統（包含應用伺服器與資料庫）
+
+- 定期同步資料與程式碼
+
+- 災難發生時，只需升級規模即可接手生產流量
+
+- ✅ 快速接手（低 RTO）
+
+- ⚠️ 成本中等（有雙份系統但規模小）
+
+🔥 4. Hot Standby / Active-Active（熱備援／雙活）⚡最快、最貴
+
+- 兩區域都運行完整系統，並同時處理流量（流量可做 Geo DNS 或跨區分流）
+
+- ✅ 最快切換（近乎零 RTO、零 RPO）
+
+- ❌ 成本最高（雙份完整架構持續運作）
+
+✅ 總結表格
+
+✅ 正確答案：D.
+
+Extend the application to add an attribute that has a value of the current timestamp plus 30 days to each new item that is created in the table. Configure DynamoDB to use the attribute as the TTL attribute.
+
+🔍 為什麼選 D？
+
+這題的核心是：
+
+- 資料只需要保留 30 天
+
+- 要省錢（minimize cost）
+
+- 要省力（minimize development effort）
+
+而 DynamoDB TTL（Time to Live） 是 AWS 提供的內建功能，專門用來做這種「自動刪除過期資料」的需求。
+
+你只需要：
+
+在新增資料時，寫入一個 timestamp 欄位（例如 expireAt）。
+
+設定 DynamoDB 使用這個欄位當作 TTL。
+
+到時間後，DynamoDB 會自動刪除該筆資料，無需手動清理。
+
+✅ 零維護、零伺服器、低成本！
+
+❌ 為什麼其他選項不如 D？
+
+A. 使用 CloudFormation 每 30 天重建表格
+
+- 毫無效率、而且會 清空整個資料表，不符合「只刪除 30 天以前資料」的需求
+
+- 高維護成本
+
+B. 用 EC2 + Marketplace + 自建刪除機制
+
+- 多了 EC2 成本與運維
+
+- 還要設計刪除邏輯，開發成本高
+
+C. 用 DynamoDB Streams + Lambda 去找舊資料刪掉
+
+- Streams 只能觸發當前新增的資料，你無法從中獲得舊資料列表
+
+- 邏輯複雜，需要定時掃描整表 ➜ 成本與開發 effort 高
+
+✅ TTL 設計範例（選項 D）
+
+{
+
+"orderId": "1234",
+
+"createdAt": 1725405600,
+
+"expireAt": 1727997600 // 30 天後的 Unix timestamp
+
+}
+
+然後在 DynamoDB 中設定 expireAt 為 TTL 欄位即可。
+
+📌 小提醒：
+
+- TTL 是非即時的：刪除可能會延遲幾分鐘到幾小時，但最終會刪掉。
+
+- 不會產生 DynamoDB Streams 記錄（如果你要 audit，要額外設計）。
+
+✅ 正確答案：D.
+
+Use Amazon Elastic Kubernetes Service (Amazon EKS) with AWS Fargate for compute and Amazon DocumentDB (with MongoDB compatibility) for data storage.
+
+🔍 題目重點：
+
+- 應用程式目前是 容器化、跑在 Kubernetes 上，並使用 MongoDB
+
+- 不能修改程式碼或部署方式
+
+- 希望搬到 AWS 且減少運維成本
+
+✅ 為什麼選 D？
+
+✅ 全部需求都符合，且運維壓力最低。
+
+❌ 為什麼其他選項不行？
+
+A. ECS + EC2 + MongoDB on EC2
+
+- 要手動維護 MongoDB（沒託管服務）
+
+- 使用 ECS 會改變部署方式（不是 Kubernetes）
+
+- ➜ ❌ 不符合部署與運維條件
+
+B. ECS + Fargate + DynamoDB
+
+- DynamoDB 是 key-value/NoSQL ➜ 不支援 MongoDB 查詢語法
+
+- 同樣 ECS 不是 Kubernetes ➜ ❌ 不符現有部署方式
+
+C. EKS + EC2 + DynamoDB
+
+- EKS 有符合 Kubernetes，但 DynamoDB 不支援 MongoDB 語法 ➜ ❌ 不符資料庫條件
+
+✅ 補充：什麼是 Amazon DocumentDB？
+
+- 是 AWS 提供的 MongoDB 相容資料庫服務
+
+- 提供託管式、高可用性、備份、修補等功能
+
+- 可以無痛遷移 MongoDB 應用程式（若不使用 MongoDB 4.4+ 特有語法）
+
+正確答案是：
+
+✅ B. Use Amazon Transcribe for multiple speaker recognition. Use Amazon Athena for transcript file analysis
+
+✅ 解題說明：
+
+🎤
+
+Amazon Transcribe
+
+- 是 AWS 提供的語音轉文字服務。
+
+- 支援 多說話者識別（speaker diarization），能自動辨識誰說了什麼。
+
+- 能生成含時間戳記與說話者標記的 transcript 檔案（例如 JSON 或 TXT 格式）。
+
+🔎
+
+Amazon Athena
+
+- 是一個互動式查詢服務，可以使用標準 SQL 查詢儲存在 Amazon S3 上的檔案（例如 transcript）。
+
+- 無伺服器，無需事先載入資料，適合分析日誌、轉錄文件等。
+
+🗃️
+
+Amazon S3
+
+- 提供高耐久性（99.999999999%）的儲存方案，可用來保存轉錄資料長達 7 年。
+
+---
 # 2025-07-04 筆記
 
 正確答案是：
