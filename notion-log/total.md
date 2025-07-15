@@ -1,3 +1,186 @@
+# 2025-07-15 筆記
+
+✅ 題目解析：
+
+公司使用三層架構：
+
+- 流量流程：
+
+- 
+
+- 需求：改善「資料傳輸過程」（data in transit）的安全性
+
+✅ 最佳答案：
+
+A. Configure a TLS listener. Deploy the server certificate on the NLB
+
+✅ 詳細解析：
+
+為什麼選 A：
+
+- ✅ TLS (傳輸層加密) 是最佳實踐來保護 data in transit。
+
+- ✅ NLB 支援 TLS listener (Layer 4 TLS termination)：
+
+- 
+
+- ✅ 適合 sensor data 使用 TCP/UDP 協定的應用場景，維持低延遲 + 加密傳輸。
+
+❌ 其他選項解析：
+
+📝 小總結：
+
+🎯
+
+總結建議
+
+：
+
+✅ 選 A 是最小變更、高安全性、最適合的方案：透過 NLB 加 TLS listener 保護資料在傳輸途中的安全性。
+
+✅ 題目解析：
+
+公司需求：
+
+- ✅ 每小時執行一次批次任務（batch job）
+
+- ✅ CPU 密集型，on-premises 環境約用 64 vCPU、512 GiB RAM，平均 15 分鐘內完成
+
+- ✅ 目標：維持效能（15分鐘完成）+ 最少維運負擔
+
+✅ 最佳答案：
+
+B. Use Amazon Elastic Container Service (Amazon ECS) with AWS Fargate
+
+✅ 詳細解析：
+
+為什麼選 B（ECS + Fargate）：
+
+- ✅ Fargate 完全 serverless：
+
+- 
+
+- ✅ Fargate 可支援高效能批次處理：
+
+- 
+
+- ✅ 適合 批次作業（batch job）+ 低頻次觸發（每小時一次）。
+
+- ✅ 自動按需計費，運行期間付費，結束後自動關閉，不浪費資源。
+
+簡單流程：
+
+使用 Amazon ECS Fargate Task 包裝原本應用邏輯。
+
+使用 EventBridge 排程 每小時啟動任務。
+
+自動擴展 & 簡單維護。
+
+❌ 為什麼其他選項不適合：
+
+📝 總結建議：
+
+🎯
+
+結論：
+
+✅ 最佳選擇是 B — ECS Fargate 支援彈性擴展、高效能且免維運，最適合這類批次運算場景。
+
+📖
+
+題目解析
+
+公司場景：
+
+- ✅ EC2 instance 在 public subnet 並有 Elastic IP
+
+- ✅ 預設 security group：沒有明確開 port
+
+- ✅ Network ACL 被修改為 block all traffic
+
+- ✅ 目標：開放 port 443 (HTTPS) 讓全世界可以存取 Web Server
+
+✅
+
+最佳答案：A 和 E
+
+✅
+
+詳解說明：
+
+為什麼選 A：
+
+- ✅ Security Group 是 Stateful（有回應流量自動允許）
+
+- ✅ 需要在 security group 設定允許入站 port 443 (TCP) 來自 0.0.0.0/0（全球來源）
+
+- 正確做法：
+
+- 
+
+為什麼選 E：
+
+- ✅ Network ACL 是 Stateless，需同時開放 inbound 和 outbound
+
+- ✅ 標準做法：
+
+- 
+
+- ✅ E 是符合 AWS 官方最佳實踐 的 NACL 設定方式
+
+❌
+
+為什麼其他選項不正確：
+
+📝
+
+總結表：
+
+🎯
+
+結論：
+
+✅ 最佳答案：A + E，符合 AWS 實作規範，透過 SG + NACL 雙層設計開放 HTTPS 服務。
+
+✅ 題目解析：
+
+公司需求：
+
+- ✅ 資料在傳輸過程中加密 (in transit)
+
+- ✅ 資料在儲存時加密 (at rest)，且在上傳 S3 前即需加密
+
+- ✅ 集中帳戶儲存 log
+
+✅
+
+最佳答案：C. Create bucket policies that require the use of server-side encryption with S3 managed encryption keys (SSE-S3) for S3 uploads.
+
+✅
+
+詳解說明：
+
+為什麼選 C：
+
+- ✅ SSE-S3（Server-Side Encryption with S3 managed keys）：
+
+- 
+
+- ✅ Bucket Policy 強制要求加密：
+
+- 
+
+- ✅ 傳輸加密：
+
+- 
+
+❌
+
+為什麼其他選項不推薦：
+
+📝
+
+---
 # 2025-07-14 筆記
 
 ✅ 正確答案：B. Use a Multi-AZ deployment of an Amazon RDS for MySQL DB instance with a General Purpose SSD (gp2) EBS volume.
