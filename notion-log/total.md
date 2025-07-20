@@ -1,3 +1,194 @@
+# 2025-07-20 筆記
+
+題目解析
+
+這題的情境是：
+
+- 一個全球性的影片教學平台，學生觀看影片，授權的內容開發者上傳影片
+
+- 上傳的影片放在 S3（us-east-2）
+
+- 公司額外建立了 S3 bucket 在 eu-west-2 與 ap-southeast-1
+
+- 需求：減少開發者上傳與學生觀看的延遲，且對 application 做最少改動
+
+這題考兩個概念：
+
+S3 Replication (複寫)：幫助資料自動同步到其他 bucket
+
+S3 Multi-Region Access Point (MRAP)：讓 application 自動存取「最近的」bucket，不用自己寫邏輯判斷
+
+詳細解答
+
+✅ 正確答案：
+
+- A. Configure one-way replication from the us-east-2 S3 bucket to the eu-west-2 S3 bucket. Configure one-way replication from the us-east-2 S3 bucket to the ap-southeast-1 S3 bucket.
+
+- D. Create an S3 Multi-Region Access Point. Modify the application to use the Amazon Resource Name (ARN) of the Multi-Region Access Point for video streaming. Do not modify the application for video uploads.
+
+📝 解釋：
+
+- A 選項理由：
+
+- 
+
+- D 選項理由：
+
+- 
+
+❌ 錯誤選項說明：
+
+- B 錯：
+
+- 
+
+- C 錯：
+
+- 
+
+- E 錯：
+
+- 
+
+🟣 最終結論：
+
+選擇 A + D：
+
+- A：確保資料正確同步到其他地區
+
+- D：讓學生自動存取最近的 bucket，不改動上傳邏輯
+
+題目解析
+
+這題情境是：
+
+- 公司要提供一個RESTful API 的 web analytics 服務
+
+- 數百萬使用者要透過驗證才能存取 API
+
+- 重點是「最高的營運效率（MOST operational efficiency）」
+
+關鍵要素：
+
+- RESTful API
+
+- 驗證需求
+
+- 高流量、多用戶數
+
+- 高營運效率 → 少維護、低成本、雲端託管最佳方案
+
+詳細解答
+
+✅
+
+正確答案：A. Cognito user pool + API Gateway REST API + Cognito authorizer
+
+📝 原因說明：
+
+- Amazon Cognito user pool：專門用來做user authentication（登入驗證），支援社交登入、MFA、密碼管理，全託管 → 超省事
+
+- API Gateway REST API：原生支援用 Cognito 作為 authorizer，驗證邏輯不用自己寫，IAM policies 自動整合
+
+- Operational Efficiency：
+
+- 
+
+❌ 錯誤選項解析：
+
+- B. Cognito identity pool + HTTP API：
+
+- 
+
+- C. Lambda function + Lambda authorizer：
+
+- 
+
+- D. IAM user + IAM authorizer：
+
+- 
+
+🟣
+
+總結：
+
+🎯
+
+最推薦選擇：A
+
+題目解析
+
+這題是單一 EC2 instance 運行的 legacy system：
+
+- 應用無法修改
+
+- 無法水平擴展（只能單 instance 運行）
+
+- 重點：提升 recovery time（縮短恢復時間）
+
+詳細解答
+
+✅ 正確答案：
+
+C. CloudWatch alarm 恢復 EC2 instance
+
+📝 解釋：
+
+- CloudWatch EC2 recovery alarm：
+
+- 
+
+- ✅ 最符合需求：不可修改程式碼，又要縮短恢復時間
+
+❌ 錯誤選項解析：
+
+- A. Termination protection ❌
+
+- 
+
+- B. Multi-AZ ❌
+
+- 
+
+- D. RAID 配置 ❌
+
+- 
+
+🎁 最終總結：
+
+🎯 正確答案：
+
+C
+
+題目解析
+
+這題的前提是：
+
+- 給了一段 IAM Policy JSON，範例權限是：
+
+- 
+
+- 問：可以將這份 identity-based policy 附加在哪些 IAM principal？
+
+解釋：Identity-based policy 是什麼？
+
+- Identity-based policies 可以附加到：
+
+- 
+
+它是針對「人或角色」來限制的，不是綁定在資源上（那是 resource-based policy）。
+
+📝 各選項逐項分析
+
+🎯 最佳答案：
+
+✅ A. Role
+
+✅ B. Group
+
+如果你想，我可以順便整理一份：
+
+---
 # 2025-07-19 筆記
 
 題目解釋
