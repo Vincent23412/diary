@@ -1,3 +1,196 @@
+# 2025-07-21 筆記
+
+問題 4
+
+✅ 正確
+
+一家製藥公司在內部資料中心和 AWS 雲端上都有資源。公司要求所有軟體架構師必須使用儲存在 Active Directory 的內部網路憑證來存取兩邊的資源。
+
+在此情境下，下列哪一項可以滿足此需求？
+
+❌ 使用 Amazon VPC
+
+✅ 設定基於 Microsoft Active Directory Federation Service 的 SAML 2.0 聯邦認證
+
+❌ 使用 IAM 使用者
+
+❌ 設定基於 Web Identity Federation 的 SAML 2.0 聯邦認證
+
+總體解釋
+
+由於公司使用 Microsoft Active Directory，而其實作了 SAML（Security Assertion Markup Language），因此可以透過 SAML 聯邦認證方式來存取 AWS。這樣一來，使用者可以直接使用內部網路帳號來登入 AWS。
+
+AWS 支援 SAML 2.0 的身分聯邦（identity federation），這是一種開放標準，許多身份提供者（IdP）皆支援。透過此功能，可以實現單一登入（SSO），讓使用者無需建立 IAM 使用者，即可登入 AWS 管理控制台或呼叫 AWS API。
+
+設定 SAML 2.0 聯邦認證的一般流程如下：
+
+公司內部必須有支援 SAML 2.0 的 IdP，例如 Microsoft Active Directory Federation Service (AD FS)、Shibboleth 或其他相容的 SAML 2.0 身份提供者，並將該 IdP 與 AWS 帳戶建立信任關係。
+
+因此，正確答案是：設定基於 Microsoft Active Directory Federation Service 的 SAML 2.0 聯邦認證。
+
+選項說明：
+
+- 「設定基於 Web Identity Federation 的 SAML 2.0 聯邦認證」不正確，因為 Web Identity Federation 主要是讓使用者透過 Amazon、Facebook、Google 等外部 IdP 登入，並未使用 Active Directory。
+
+- 「使用 IAM 使用者」不正確，因為題目要求使用現有的 Active Directory 憑證，而不是建立 IAM 使用者。
+
+- 「使用 Amazon VPC」不正確，因為 VPC 是在 AWS 雲端內建立邏輯隔離網路，與使用者登入或身份認證無關。
+
+一家軟體開發公司使用 AWS Lambda 的無伺服器運算來建構和執行應用程式，無需設定或管理伺服器。該公司有一個 Lambda 函數會連接到 MongoDB Atlas（常見的資料庫即服務平台 DBaaS），同時還會呼叫第三方 API 以取得應用程式所需的資料。公司指派一位開發人員為 DEV、SIT、UAT 和 PROD 環境建立 MongoDB 的資料庫主機名稱、使用者名稱、密碼，以及 API 憑證等環境變數。
+
+考量到 Lambda 函數儲存了敏感的資料庫與 API 憑證，為了防止團隊內其他開發人員或任何人以明文形式看到這些憑證，以下哪個選項可以提供最佳安全性？
+
+✅ 您答對了
+
+建立新的 AWS KMS 金鑰，使用加密輔助工具（encryption helpers）透過 AWS Key Management Service 來儲存及加密敏感資訊。
+
+❌ 啟用 SSL 加密，透過 AWS CloudHSM 來儲存與加密敏感資訊。
+
+❌ 不需要做任何事情，因為 Lambda 預設會使用 AWS Key Management Service 來加密環境變數。
+
+❌ Lambda 不會為環境變數提供加密功能，應該將程式碼部署至 Amazon EC2 instance。
+
+總體解釋
+
+當您在 Lambda 函數中建立或更新環境變數時，AWS Lambda 會自動使用 AWS KMS 來加密這些變數。在函數被觸發時，Lambda 會將這些值解密後提供給函數代碼使用。
+
+第一次在某個區域內建立或更新 Lambda 函數且使用環境變數時，AWS 會自動為您建立一個預設的服務金鑰（default service key）。該金鑰用來加密環境變數。不過若您希望額外提高安全性，您可以自訂一把 AWS KMS 金鑰，並使用加密輔助工具來加密環境變數。自訂金鑰可以讓您有更高的管理靈活性，例如設定金鑰輪換、啟用或停用金鑰、定義存取控制，以及稽核加密金鑰的使用情況。
+
+因此最佳答案是：
+
+- 建立新的 AWS KMS 金鑰並使用加密輔助工具來加密敏感資訊。
+
+選項說明：
+
+- 「不需要做任何事情」錯誤，雖然 Lambda 預設會加密環境變數，但若團隊內有開啟 Lambda 控制台的權限，仍可能看到明文值，因此建議自訂 KMS 金鑰。
+
+- 「啟用 SSL 加密」錯誤，SSL 只能保障資料在傳輸過程中的加密，但無法防止資料靜態儲存時被看見。AWS KMS 才是保護靜態資料的首選。
+
+- 「Lambda 不提供加密功能，建議用 EC2」錯誤，因為 Lambda 本身就提供環境變數加密的功能。
+
+一家電信公司計劃為開發人員提供 AWS Console 存取權限。根據公司政策，必須使用身份聯邦（identity federation）與基於角色的存取控制（role-based access control）。目前公司已經透過企業內部 Active Directory 的群組分配角色。
+
+在此情境下，下列哪兩個服務可以提供開發人員 AWS Console 存取權限？（選兩個）
+
+❌ AWS Lambda
+
+❌ AWS Directory Service Simple AD
+
+❌ IAM Groups
+
+✅ IAM Roles
+
+✅ AWS Directory Service AD Connector
+
+總體解釋
+
+AWS Directory Service 提供多種方式，讓您能夠將 Amazon Cloud Directory 與 Microsoft Active Directory (AD) 整合至 AWS 服務中。目錄服務用來儲存使用者、群組及裝置資訊，管理員透過這些服務來控管資訊與資源的存取權限。
+
+由於公司已經使用內部 Active Directory，最佳解法是使用 AWS Directory Service AD Connector，這可以簡單整合 AWS 與本地端 Active Directory。另外，因為角色已經透過 Active Directory 群組分配，所以建議搭配 IAM Roles 使用。透過 AD Connector 與 VPC 整合之後，您可以將 IAM Role 指派給來自 Active Directory 的使用者或群組。
+
+因此正確答案為：
+
+- AWS Directory Service AD Connector
+
+- IAM Roles
+
+錯誤選項說明：
+
+- 「AWS Directory Service Simple AD」不適用，因為它只提供部分 Managed Microsoft AD 的功能，且無法連接公司現有的 AD 環境。
+
+- 「IAM Groups」僅用於管理 IAM 使用者的群組權限，無法對接 Active Directory。
+
+- 「AWS Lambda」主要用於無伺服器運算，與身份驗證及 Console 存取無關。
+
+一家公司將其電子商務網站託管在 Amazon EC2 的 Auto Scaling 群組上，並透過 Application Load Balancer (ALB) 分流。解決方案架構師發現該網站收到了大量來自不同系統、且 IP 位址頻繁變動的非法外部請求。為了解決效能問題，架構師必須實作一個方案來阻擋這些請求，同時盡量不影響合法流量。
+
+以下哪個選項符合這個需求？
+
+❌ 建立自訂的安全群組規則來封鎖 ALB 的惡意請求
+
+❌ 建立自訂的網路 ACL，並將其關聯至 ALB 子網路來封鎖惡意請求
+
+✅ 建立 AWS WAF 的速率限制規則，並將 web ACL 關聯至 ALB
+
+❌ 建立 AWS WAF 的一般規則，並將 web ACL 關聯至 ALB
+
+總體解釋
+
+AWS WAF（Web Application Firewall）可以和 CloudFront、Application Load Balancer、API Gateway 以及 AWS AppSync 整合，來保護您的網站與應用程式。特別是在 ALB 上，WAF 規則可於區域層級執行，有效保護公開或內部資源。
+
+速率限制規則（rate-based rule）可以追蹤每個來源 IP 的請求速率，當某個 IP 的請求速率超過指定限制時，自動對其觸發規則行為（例如封鎖）。您可以設定 5 分鐘內的請求次數上限，當惡意 IP 過度發送請求時，可以暫時封鎖該 IP，直到請求速率降低為止。
+
+因此，正確答案是：
+
+✅ 建立 AWS WAF 的速率限制規則，並將 web ACL 關聯至 ALB。
+
+錯誤選項說明：
+
+- 「建立一般 WAF 規則」錯誤，因為一般規則只能依據特定條件封鎖，無法依據請求速率自動暫時封鎖 IP。
+
+- 「自訂 NACL」錯誤，雖然 NACL 可封鎖特定 IP，但無法根據請求次數動態調整，且 IP 會頻繁變動。
+
+- 「安全群組」錯誤，安全群組僅允許流量，無法拒絕流量，也無法做速率限制。
+
+一家公司需要部署至少兩台 Amazon EC2 執行個體來支援正常工作負載，並且在高峰期自動擴展至六台 EC2 執行個體。此架構需具備高可用性與容錯能力，因為系統負責處理關鍵任務型應用程式。
+
+身為解決方案架構師，應該採取以下哪個方案來達成需求？
+
+❌ 建立 Auto Scaling 群組，將最小容量設為 2，最大容量設為 6，在 2 個可用區部署，每個 AZ 1 台執行個體
+
+❌ 建立 Auto Scaling 群組，將最小容量設為 2，最大容量設為 6，全部部署在可用區 A，部署 4 台
+
+✅ 建立 Auto Scaling 群組，將最小容量設為 4，最大容量設為 6，可用區 A 和 B 各部署 2 台
+
+❌ 建立 Auto Scaling 群組，將最小容量設為 2，最大容量設為 4，可用區 A 和 B 各部署 2 台
+
+總體解釋
+
+Amazon EC2 Auto Scaling 可確保您的應用程式始終擁有足夠的 EC2 執行個體來處理負載。透過 Auto Scaling 群組，您可以設定最小與最大執行個體數量，確保系統在這個範圍內自動調整資源。
+
+要達成高可用與容錯，必須將執行個體跨多個可用區部署。這樣即使某一個可用區發生故障，您的應用程式仍有足夠的執行個體持續運作。為了確保即便一個 AZ 當機時仍有至少 2 台執行個體運行，建議：
+
+- 最小容量設為 4（每個 AZ 2 台）
+
+- 最大容量設為 6（高峰期可自動擴展）
+
+正確答案：
+
+✅ 建立 Auto Scaling 群組，最小 4 台、最大 6 台，可用區 A 和 B 各部署 2 台。
+
+錯誤選項原因：
+
+- 「最小 2 台，每個 AZ 1 台」：如果某個 AZ 當機，會只剩 1 台，無法保障高可用性。
+
+- 「4 台集中在單一 AZ」：缺乏跨 AZ 部署，一旦 AZ 當機，所有執行個體會同時失效。
+
+- 「最小 2、最大 4」：高峰期需求為 6 台，最大容量設 4 無法滿足流量。
+
+一家公司在 AWS 上有由 Linux 和 Windows EC2 執行個體組成的雲端架構，全天候 24/7 處理大量財務資料。為確保系統高可用性，解決方案架構師需要建立一套方案，能夠監控所有執行個體的記憶體與磁碟使用率。
+
+以下哪個方案最適合？
+
+❌ 使用 Amazon Inspector 並安裝 Inspector agent 到所有 EC2 執行個體
+
+❌ 使用 EC2 預設 CloudWatch 設定與 AWS Systems Manager (SSM) Agent
+
+❌ 啟用 EC2 Enhanced Monitoring 並安裝 CloudWatch agent
+
+✅ 安裝 Amazon CloudWatch agent 到所有 EC2 執行個體，收集記憶體與磁碟使用率資料，並在 CloudWatch 控制台查看自訂指標
+
+總體解釋
+
+- Amazon CloudWatch 預設指標：提供 CPU、網路、磁碟 I/O 基礎指標，但不包含記憶體與磁碟空間使用率。
+
+- CloudWatch agent：是唯一能跨 Windows/Linux 收集記憶體與磁碟使用率的官方方案。
+
+- Enhanced Monitoring：僅適用於 RDS，EC2 沒有此功能。
+
+- Amazon Inspector：用於安全漏洞掃描，無法監控資源使用率。
+
+- SSM Agent：提供管理與操作功能，並不監控資源指標。
+
+---
 # 2025-07-20 筆記
 
 題目解析
