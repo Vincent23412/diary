@@ -1,3 +1,197 @@
+# 2025-07-22 筆記
+
+公司希望組織管理 AWS 資源的支出追蹤方式，並且需要在每月底生成一份報告，彙總每個部門的總計帳單費用。
+
+以下哪一個方案能滿足需求？
+
+正確答案 ✅
+
+將資源加上部門名稱的標籤，並啟用成本分配標籤。
+
+Tag resources with the department name and enable cost allocation tags.
+
+其他選項：
+
+❌ 建立 AWS 服務的成本與使用報告，分別針對每個部門使用的服務。
+
+Create a Cost and Usage report for AWS services that each department is using.
+
+❌ 使用 AWS Cost Explorer 查看花費，並根據資源篩選使用資料。
+
+Use AWS Cost Explorer to view spending and filter usage data by Resource.
+
+❌ 將資源加上部門名稱的標籤，並在 AWS Budget 設定預算動作。
+
+Tag resources with the department name and configure a budget action in AWS Budget.
+
+總體解釋：
+
+AWS 的「標籤 (Tags)」是一種用來組織資源的標籤機制，由「鍵 (Key)」和「值 (Value)」組成，例如：
+
+- Department = Marketing、Department = IT。
+
+啟用 成本分配標籤 (Cost Allocation Tags) 後：
+
+- AWS 會在 Billing 與 Cost Management 控制台中提供一份 成本分配報告（CSV 檔），可按照標籤分類追蹤每個部門的實際花費。
+
+- 您可以按業務類別（如部門、專案、應用程式）來細分帳單。
+
+這是最有效率、最官方推薦的跨部門成本追蹤方式。
+
+為什麼其他選項錯誤：
+
+- AWS Budgets 主要用來 設定預算限制和通知警示，不是用來生成每月報表。
+
+- Cost Explorer 的「Resource」過濾器功能有限，尤其主要針對 EC2，無法跨多種服務完整追蹤部門成本。
+
+- Cost and Usage Report (CUR) 雖然提供詳細帳單資訊，但預設是根據服務分類，不會針對「部門」分類；若要按部門分類仍須使用標籤。
+
+📌 結論：
+
+✅ 正確方案：為資源加上部門標籤，並啟用成本分配標籤 (Cost Allocation Tags)。
+
+一間組織需要控管對數個 Amazon S3 bucket 的存取權限，該組織計畫使用 Gateway Endpoint 的方式來讓受信任的 bucket 可被存取。以下哪一個做法最適合滿足這個需求？
+
+✅ 正確答案：
+
+- 針對受信任的 S3 bucket 產生 endpoint policy (Generate an endpoint policy for trusted S3 buckets)
+
+❌ 錯誤選項：
+
+- 為受信任的 VPC 產生 bucket policy (Generate a bucket policy for trusted VPCs)
+
+- 為受信任的 S3 bucket 產生 bucket policy (Generate a bucket policy for trusted S3 buckets)
+
+- 為受信任的 VPC 產生 endpoint policy (Generate an endpoint policy for trusted VPCs)
+
+📌 詳細說明：
+
+Gateway Endpoint 是一種 VPC Endpoint，讓您的 VPC 裡的資源可以透過私有網路連接 Amazon S3 或 DynamoDB，不需要經過 Internet Gateway 或 NAT Gateway。
+
+當您建立 Gateway Endpoint 時，可以附加一個 Endpoint Policy，用來控制透過該 endpoint 存取 AWS 服務的權限，尤其可以：
+
+- 指定「哪些 S3 bucket 可以被存取」
+
+- 限定「哪些 IAM 使用者或角色可以透過該 endpoint 存取資源」
+
+在本案例中，需求是 只允許受信任的 S3 bucket 存取，最佳實踐是直接透過 endpoint policy 控制，而非逐個設定 S3 bucket policy。
+
+🎯 總結：
+
+- ✅ endpoint policy（針對 S3 bucket）：適合集中管理，減少維護成本。
+
+- ❌ bucket policy：雖然可行，但需每個 bucket 單獨設定，管理負擔重。
+
+- ❌ 針對 VPC 的 policy：與本需求不符，因為目標是「限制 bucket 存取權」，不是限制「哪個 VPC 可用」。
+
+最省時且容易管理的方案：透過 endpoint policy 控制 S3 bucket 存取權限。
+
+一間軟體公司在 AWS 和本地端（on-premises）伺服器上同時託管資源。您被要求為這些同時使用雲端與本地資源的應用程式設計一個「解耦式架構（decoupled architecture）」。
+
+以下哪些選項是正確的？（請選擇兩個）
+
+✅ 正確答案：
+
+- 使用 SWF（Simple Workflow Service）來讓本地端伺服器和 EC2 執行個體共同參與解耦式應用程式。
+
+- 使用 SQS（Simple Queue Service）來讓本地端伺服器和 EC2 執行個體共同參與解耦式應用程式。
+
+❌ 錯誤選項：
+
+- 使用 RDS 同時支援本地端伺服器和 EC2（RDS 是資料庫服務，並非訊息佇列，不具備解耦功能）
+
+- 使用 VPC Peering 來連接本地端伺服器與 EC2（本地端應使用 Direct Connect 或 VPN，VPC Peering 無法連接 on-premises）
+
+- 使用 DynamoDB 同時支援本地端伺服器和 EC2（DynamoDB 也是資料庫服務，不適用於解耦應用）
+
+📌 詳細說明：
+
+解耦式架構的核心目標是：
+
+- 讓應用程式的不同部分彼此獨立運作，降低依賴性
+
+- 透過「非同步通訊」來協調不同系統或服務的互動
+
+🎯 總結：
+
+如果你的目標是讓 on-premises 和 AWS 的應用程式彼此 非同步協作、彼此獨立解耦，最佳選擇是：
+
+- SQS：做訊息緩衝、非同步溝通
+
+- SWF：做跨系統工作流程管理
+
+一家公司希望簡化在 AWS Organization 中建立多個 AWS 帳號的流程。每個組織單位（OU）都必須能夠建立新帳號，且這些帳號必須套用經安全團隊預先核准的標準化設定與網路配置，以確保整個組織的基礎環境一致。
+
+以下哪一個方案最省力、最容易實作？
+
+✅ 正確答案：
+
+- 建立 AWS Control Tower Landing Zone，啟用預設的 guardrails（防護欄）來強制執行政策或偵測違規行為。
+
+❌ 錯誤答案：
+
+- 使用 AWS Config aggregator 來整合全組織的帳號與區域資料，佈署 conformance pack 來標準化基線與網路設定。
+❌ 錯誤原因：AWS Config 是用來監控資源合規性，無法自動創建帳號或佈署網路設定，且 conformance pack 無法處理帳號建立流程。
+
+- 使用 AWS Systems Manager OpsCenter 來集中創建 AWS 帳號，並使用 AWS Security Hub 強制執行政策與偵測違規行為。
+❌ 錯誤原因：OpsCenter 主要用於事件與問題管理，無法建立帳號；Security Hub 用於安全檢測，不負責帳號佈署。
+
+- 使用 AWS Resource Access Manager (RAM) 來建立新帳號並標準化組織單位的基線與網路設定。
+❌ 錯誤原因：RAM 是用來跨帳號分享資源，不負責帳號建立與網路設定。
+
+🎯
+
+解析：
+
+AWS Control Tower 是最省力的選擇，因為：
+
+- 提供一站式帳號建立流程（Account Factory）
+
+- 自動化設定最佳實踐（基線、VPC 架構、IAM 設定等）
+
+- 內建 Guardrails：強制防止違規行為（SCP）、偵測非合規行為（AWS Config）、自動修正
+
+- 可以跨 OU 與帳號套用標準化設定
+
+- 只需一次性佈署 Landing Zone，後續新帳號自動繼承標準設定
+
+✅ 結論：
+
+如果你想用最少人力與操作時間管理多帳號架構，AWS Control Tower 是最佳選擇。
+
+題目翻譯：
+
+作為公司「營運持續計畫（Business Continuity Plan）」的一部分，IT 總監指示 IT 團隊儘快建立公司所有 Amazon EC2 執行個體之 EBS 磁碟區 的自動備份機制。
+
+以下哪一個方案是最快速且最具成本效益的方式來自動備份所有 EBS 磁碟區？
+
+正確答案：
+
+✅ 使用 Amazon Data Lifecycle Manager (Amazon DLM) 來自動化建立 EBS snapshots。
+
+選項翻譯：
+
+- ❌ 錯誤： 為了實現自動化，建立一個排程任務，透過 AWS CLI 定期執行 create-snapshot 指令來定時對生產環境的 EBS 磁碟區建立快照。
+
+- ❌ 錯誤： 使用 Amazon Storage Gateway，將 EBS 磁碟區作為資料來源，透過 storage gateway 將備份儲存到本地端伺服器。
+
+- ✅ 正確： 使用 Amazon Data Lifecycle Manager (Amazon DLM) 來自動化 EBS snapshots 的建立。
+
+- ❌ 錯誤： 在 Amazon S3 中使用 EBS-cycle policy 來自動備份 EBS 磁碟區。（此功能不存在）
+
+中文總體解釋：
+
+Amazon Data Lifecycle Manager (DLM) 是 AWS 提供的免費服務，可以幫助您自動化：
+
+- EBS 快照的建立、
+
+- 保留期限的設定、
+
+- 過期自動刪除。
+
+透過簡單設定策略，您不需要撰寫 Shell Script，也不需額外建立 Lambda、CLI 排程等額外維運流程，就能做到符合審計與備份需求的自動快照備份，最省時且免額外成本。
+
+---
 # 2025-07-21 筆記
 
 問題 4
