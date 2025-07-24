@@ -1,3 +1,192 @@
+# 2025-07-24 筆記
+
+當然可以，以下是不刪減的完整翻譯：
+
+一個 Shell 腳本需要使用該實例的公有 IP 和私有 IP 地址。
+
+哪一種方法是讓你的 Shell 腳本能夠獲取該實例關聯 IP 地址的最佳方式？
+
+- 透過使用 CloudWatch 指標。
+✅ 正確答案：
+
+- 透過使用 Curl 或 Get 命令，從 http://169.254.169.254/latest/meta-data/ 取得最新的中繼資料資訊。
+❌ 您的答案：
+
+- 透過使用 Curl 或 Get 命令，從 http://169.254.169.254/latest/user-data/ 取得最新的使用者資料資訊。
+
+- 透過使用 IAM。
+
+總體解釋：
+
+實例中繼資料 是關於你的 EC2 實例的資料，你可以用來配置或管理正在執行的實例。
+
+因為你的實例中繼資料可直接從實例本身存取，
+
+所以你不需要使用 Amazon EC2 控制台或 AWS CLI。
+
+這在你撰寫要從實例中執行的腳本時會非常有幫助。
+
+例如，你可以從實例中繼資料中存取實例的本地 IP 地址，以便用來管理與外部應用程式的連線。
+
+若要從正在執行的實例中檢視私有 IPv4 位址、公有 IPv4 位址，
+
+以及所有其他類別的實例中繼資料，請使用下列 URL：
+
+👉 http://169.254.169.254/latest/meta-data/
+
+以下是這題的完整翻譯與解析：
+
+題目：
+
+一家企業擁有一個全球性新聞網站，部署在多台 EC2 實例上。
+
+近期由於網站的負載上升，導致讀者的回應時間變慢。
+
+這造成了營收影響，因為有些使用者若等超過 10 秒仍無法開啟網站就會離開。
+
+公司希望用具成本效益的方式解決這個問題。
+
+請問下列哪兩項 AWS 服務可以用來解決這個問題？（請選兩項）
+
+各選項解析：
+
+✅ 正確答案：
+
+使用 Amazon CloudFront，並將網站設為自訂來源（custom origin）
+→ CloudFront 是 AWS 的 全球內容傳遞網路（CDN）服務，
+可以將靜態或快取內容部署到邊緣位置，讓全球用戶從最近的位置載入內容，
+大幅降低延遲，提高載入速度。
+
+使用 Amazon ElastiCache 作為網站的記憶體資料儲存或快取系統
+→ ElastiCache（支援 Redis 或 Memcached）可以快取常用的查詢結果、靜態內容或 session 資料，
+降低對資料庫或應用伺服器的壓力，加快網站回應速度。
+
+❌ 錯誤選項說明：
+
+- ❌ 為了提升讀取吞吐量，使用 AWS Storage Gateway 將內容分散到多個區域
+→ Storage Gateway 是混合雲儲存服務，用於連接 on-premises 和 AWS 儲存，不是用來加速網站內容傳遞。
+
+- ❌ 將網站部署到不同區域中的所有 VPC 以加快處理速度
+→ 雖然理論上部署到多個區域會縮短地理延遲，但這會大幅增加成本與複雜度，也不必要，
+使用 CloudFront 就可以達成全球加速，不需要全區部署。
+
+- ❌ 使用 Amazon RDS Multi-AZ 來提升資料庫讀取擴展性
+→ Multi-AZ 是用來做高可用與備援，不是用來增加讀取效能。
+若要擴展讀取效能，應該考慮使用 Read Replica 而不是 Multi-AZ。
+
+✅ 正確答案總結：
+
+- ✔ Use Amazon CloudFront with website as the custom origin
+
+- ✔ Use Amazon ElastiCache for the website’s in-memory data store or cache
+
+這是一題非常典型的網站加速設計題，關鍵是：
+
+- CDN 解決全球使用者的地理延遲問題
+
+- Cache 解決伺服器高負載造成的回應變慢
+
+如果你想我幫你畫一張簡單的架構圖，說明這兩者如何在網站前端協作，也可以告訴我喔！
+
+你這題答對了，很棒！來幫你完整翻譯與解析這題：
+
+🧾 題目翻譯：
+
+一家公司有一個 Application Load Balancer（ALB），
+
+用來接收網站流量，分別在：
+
+- 80 port（HTTP）
+
+- 443 port（HTTPS）
+
+最近公司為網站設定了一個新網域，
+
+他們希望所有對這個新網域的 HTTP 請求都會自動轉導（redirect）到 HTTPS，以提升安全性。
+
+❓ 要如何設定 ALB 才能達成這個目的？
+
+✅ 正確答案：
+
+設定現有的 HTTP listener（port 80）來將流量重導至 port 443。
+
+✅ 詳細解釋：
+
+Application Load Balancer 是 Layer 7 的負載平衡器，可以根據請求內容做細緻的路由。
+
+對於 HTTP ➝ HTTPS 自動轉導的需求，最正確做法是：
+
+使用既有的 HTTP Listener (port 80)
+
+在該 Listener 上加一個 “Redirect” 動作
+
+這樣只要有人用 http://yourdomain.com 存取，
+
+就會被 ALB 自動導向到 https://yourdomain.com，強化安全性（加密傳輸）。
+
+❌ 為什麼其他選項錯？
+
+📌 小提醒：實務設定畫面（在 AWS Console）
+
+當你點進 ALB 的 Listener 設定 > Port 80 > Actions > Redirect to…
+
+就可以設定：
+
+- Redirect protocol: HTTPS
+
+- Port: 443
+
+- Status code: HTTP_301（永久轉址）
+
+如果你想要我幫你補一張 ALB HTTP → HTTPS redirect 的設定圖解，我也可以幫你產生！要嗎？
+
+這題你雖然答錯了，但其實你已經很接近正確答案了，只是少了一個關鍵工具的理解：AWS Control Tower。以下是完整中文翻譯與解析，幫你鞏固這類多帳號治理與合規監控題型的思考方式。
+
+🧾 題目翻譯：
+
+一間新創公司準備啟動多個專案，打算在 AWS 上建立一個 安全、合規的多帳號環境。
+
+IT Manager 要求以下功能：
+
+- 能夠輕鬆設定多帳號環境（Landing Zone）
+
+- 能持續追蹤帳號內資源是否違反政策或合規
+
+- 有儀表板 Dashboard 可以觀察整個企業內所有帳號的狀況
+
+- 符合 AWS 多帳號策略的最佳實務（Best Practices）
+
+✅ 正確解法：
+
+✅ 使用 AWS Control Tower 建立 Landing Zone，並透過 Account Factory 自動配置帳號。透過 Control Tower Dashboard 監控帳號狀況，並設置 Preventive 和 Detective Guardrails 進行政策治理。
+
+✅ 為什麼選 AWS Control Tower？
+
+Control Tower 是 AWS 官方推薦用來快速建立多帳號治理架構的工具，特別適合中大型組織或剛開始擴展的企業。
+
+❌ 錯誤選項解析：
+
+❌ 你選的：使用 AWS Organizations + Personal Health Dashboard
+
+- AWS Organizations 確實可以用來建立多帳號架構，但沒有：
+
+- 
+
+- Personal Health Dashboard 是用來檢視 AWS 系統狀態（像是某區停機、某服務受影響），不是用來看政策合規狀況的工具。
+
+❌ 其他選項錯誤原因：
+
+✅ 總結重點：
+
+需要我幫你畫一張 Control Tower 架構圖（OU + Account Factory + Guardrails + Dashboard）讓你更快記憶這整套機制嗎？這題是非常典型的企業 IT 架構治理案例。
+
+當然可以！以下是對 AWS Control Tower 的完整介紹，幫你從原理、功能、架構到使用場景一次搞懂：
+
+✅ 什麼是 AWS Control Tower？
+
+AWS Control Tower 是一項由 AWS 提供的自動化治理工具，
+
+---
 # 2025-07-23 筆記
 
 這題考的是 EC2 不同狀態下的計費規則，以下是題目翻譯與正確解釋：
