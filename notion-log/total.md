@@ -1,3 +1,182 @@
+# 2025-07-25 筆記
+
+當然，以下是上述內容的中文翻譯：
+
+🎯
+
+目標：
+
+將本地端（on-premises）的網頁應用程式遷移到 AWS，過程中不允許有任何停機時間。實作方式為：將 50% 的流量導向 AWS 上的新應用程式，另外 50% 留在本地端。確認 AWS 上的應用運作正常後，再全部導流至 AWS。
+
+✅
+
+正確的解法：
+
+✅ 使用 Application Load Balancer（應用負載平衡器）並設定 Weighted Target Groups（加權目標組）
+
+✅ 使用 Route 53 加權路由政策（Weighted Routing Policy）
+
+❌
+
+錯誤選項與原因：
+
+❌ 使用 Network Load Balancer（NLB）與 Weighted Target Groups
+
+❌ 使用 Route 53 的 Failover 路由政策
+
+❌ 使用 AWS Global Accelerator 並結合 AnyCast IP 與 Direct Connect Gateway
+
+✅
+
+總結：
+
+若你想在本地端與 AWS 間進行無中斷遷移，最佳做法是：
+
+- 使用 Application Load Balancer + 加權目標組（Target type 設為 IP）。
+
+- 或使用 Route 53 加權路由策略。
+
+這些方法可以讓你逐步導入流量、進行測試、並安全地轉移整體服務。
+
+當然可以，這裡是這題的完整題目說明與詳解：
+
+🧩【題目背景】
+
+- 公司有一台 On-Demand EC2 實例，掛載了一個 EBS Volume。
+
+- 每天凌晨 12 點會自動排程備份（snapshot）該 EBS Volume，當時該 EC2 沒有使用。
+
+- 某天晚上發生生產環境事件（production incident），你需要同時對 EC2 和 EBS Volume 做修改。
+
+- 但這時候剛好正在進行 Snapshot。
+
+❓【題目問題】
+
+在 Snapshot 進行中，你還能怎麼操作這個 EBS Volume？哪個敘述是正確的？
+
+✅【正確答案】
+
+✅ EBS Volume 在 Snapshot 進行中仍然可以使用。
+
+🔍【選項解析】
+
+📘【補充知識：EBS Snapshot 是怎麼運作的？】
+
+- 非同步處理（Asynchronous）：
+
+- 
+
+- 使用不中斷：
+
+- 
+
+- 首次 Snapshot：
+
+- 
+
+- 後續 Snapshot：
+
+- 
+
+✅【總結】
+
+在 EBS Volume 建立 Snapshot 時：
+
+- ✅ 你可以繼續使用該 Volume（包含讀取與寫入）。
+
+- ✅ 不會被鎖定，也不影響 Attach/Detach 操作。
+
+- ❌ 沒有任何必要等到 Snapshot 結束才能使用。
+
+因此，本題正確答案是：
+
+✅ EBS Volume 可以在 Snapshot 進行中使用。
+
+如你想，我也可以補充如何用 CLI 或 AWS Console 查看 snapshot 進度、排程備份，以及使用 Lifecycle Policy 自動清除快照。
+
+這題的重點在於理解 「Zone Apex」 和 Route 53 的 Alias 功能。讓我們先釐清背景，再逐一解析選項。
+
+🧩【題目背景】
+
+- 客戶的網站托管在一組 EC2 web server 上，後方有一個 AWS Application Load Balancer（ALB）。
+
+- 使用 Amazon Route 53 作為 DNS 服務。
+
+- 他們希望設定他們的網站主網域（zone apex，例如 example.com）來指向這個 ALB。
+
+❓【題目問題】
+
+如何設定 zone apex 的 DNS 紀錄，才能讓使用者能正確透過主網域連到 ALB？
+
+✅【正確答案】
+
+✅ Create an A record aliased to the load balancer DNS name
+
+🔍【選項解析】
+
+📘【補充知識：什麼是 Zone Apex？】
+
+- DNS 區域頂層（Zone Apex）是你網域名稱本身，不帶任何子網域。
+
+- 
+
+- CNAME 記錄不能用在 apex，因為它會覆蓋其他記錄，如 MX、NS（RFC 規範限制）
+
+- AWS 提供的解法是：Route 53 的 Alias A Record
+
+- 
+
+✅【總結】
+
+題目要你解決的是如何讓 example.com 指向 ALB，但又不能用 CNAME。正確方法是：
+
+✅ 建立 Alias A 紀錄，指向 ALB 的 DNS 名稱（如 my-alb-123456.us-east-1.elb.amazonaws.com）
+
+這是唯一合法又可自動解析 ALB IP 的方式。
+
+如你有興趣，我可以補充：
+
+- 如何在 Route 53 Console 上設定 Alias A 記錄
+
+- ALB DNS 名稱怎麼取得
+
+- Alias Record 對應的 TTL 行為和健康檢查策略
+
+🌐 一、什麼是 A Record（Address Record）
+
+📌 定義：
+
+- A Record 將一個 網域名稱（Domain Name） 解析為一個 IPv4 位址。
+
+- 最常見、最基本的 DNS 記錄類型。
+
+🔧 範例：
+
+example.com → 192.0.2.44
+
+🌐 二、什麼是 AAAA Record（Quad-A Record）
+
+📌 定義：
+
+- AAAA Record（念作 “quad A”）將一個網域名稱解析為一個 IPv6 位址。
+
+- 功能與 A Record 相同，只是使用的是 IPv6 格式。
+
+🔧 範例：
+
+example.com → 2001:0db8:85a3:0000:0000:8a2e:0370:7334
+
+🌐 三、什麼是 CNAME Record（Canonical Name Record）
+
+📌 定義：
+
+- CNAME Record 表示這個網域名稱是另一個網域名稱的別名。
+
+- 它不會直接對應 IP，而是指向另一個名稱，然後由該名稱進一步解析。
+
+🔧 範例：
+
+---
 # 2025-07-24 筆記
 
 當然可以，以下是不刪減的完整翻譯：
