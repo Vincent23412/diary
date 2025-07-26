@@ -1,3 +1,194 @@
+# 2025-07-26 筆記
+
+你答對了 ✅
+
+題目重點：
+
+你需要提升 Amazon ElastiCache for Redis 的安全性，讓使用者在執行 Redis 指令前輸入密碼。
+
+正確答案解釋：
+
+Authenticate the users using Redis AUTH by creating a new Redis Cluster with both the –transit-encryption-enabled and –auth-token parameters enabled.
+
+這個設定包含兩個重點安全措施：
+
+Redis AUTH (--auth-token)：強制使用者在連線時輸入密碼。沒有密碼將無法執行任何 Redis 命令。
+
+In-transit encryption (--transit-encryption-enabled)：加密資料在用戶與 Redis 之間的傳輸，防止中間人攻擊或封包竊聽。
+
+錯誤選項解析：
+
+- Enable the in-transit encryption for Redis replication groups
+
+- 
+
+- Create a new Redis replication group and set the AtRestEncryptionEnabled parameter to true
+
+- 
+
+- Do nothing. This feature is already enabled by default
+
+- 
+
+- None of the above
+
+- 
+
+補充知識點：
+
+如果你要設定 auth-token，你可以這樣做（例如使用 AWS CLI）：
+
+aws elasticache create-replication-group \
+
+--replication-group-id my-secure-group \
+
+--replication-group-description "Secure Redis" \
+
+--engine redis \
+
+--auth-token "YourSecurePassword" \
+
+--transit-encryption-enabled \
+
+...
+
+如果你還想了解 Redis 的加密、授權與多層防護，可以告訴我，我可以幫你補充更多 ElastiCache 安全最佳實踐。
+
+當然可以，以下是這題的題目解釋和詳解兩個部分：
+
+🧩 題目解釋：
+
+這題情境是：
+
+- 你有一個部署在 Auto Scaling 群組中的 EC2 Web 應用程式。
+
+- 應用程式使用的是 Amazon RDS 上的 Microsoft SQL Server 資料庫。
+
+- 現在有一個安全性需求：必須加密從 Web 應用程式傳輸到 RDS 的資料（in-flight data）。
+
+➡️ 所以你需要找出最適合的兩個方式，來確保 EC2 與 RDS 之間傳輸中的資料是安全、加密的。
+
+✅ 詳解：
+
+正確答案（兩個）：
+
+✅ 1.
+
+Download the Amazon RDS Root CA certificate. Import the certificate to your servers and configure your application to use SSL to encrypt the connection to RDS.
+
+- 📌 意思是你必須讓應用端（EC2 上的程式）主動建立加密的 SSL 連線到 RDS。
+
+- RDS 預設會提供一個憑證，你必須下載、安裝這個憑證，並修改你的連線設定來使用 SSL。
+
+- ✅ 這樣可以保證「傳輸過程中的資料是加密的」。
+
+✅ 2.
+
+Force all connections to your DB instance to use SSL by setting the rds.force_ssl parameter to true. Once done, reboot your DB instance.
+
+- 📌 這個方法是在 RDS 的層級「強制所有進來的連線都使用 SSL」，否則不接受連線。
+
+- 這樣即使某個應用程式忘記設定 SSL，也不會有未加密的連線進來。
+
+- ⚠️ 這是一個 static 參數，要重啟 RDS 才會生效。
+
+❌ 錯誤選項：
+
+✘ Enable the IAM DB authentication in RDS using the AWS Management Console.
+
+- IAM DB Auth 只適用於 MySQL/PostgreSQL，不是 SQL Server。
+
+- 它是做「身份驗證」，不加密資料傳輸。
+
+✘ Configure the security groups of your EC2 instances and RDS to only allow traffic to and from port 443.
+
+- SQL Server 通常使用的是 port 1433。
+
+- 即使你改成 443，安全群組只能限制通訊對象，無法實際加密資料內容。
+
+✘ Specify the TDE option in an RDS option group to enable Transparent Data Encryption (TDE).
+
+- TDE 是加密「儲存在磁碟上的資料（At-Rest）」。
+
+- 題目要求的是 in-flight（傳輸中的）加密，這兩者不同。
+
+如果你還不熟 rds.force_ssl 怎麼設定、或如何在應用程式層面啟用 SQL Server SSL，隨時可以問我，我可以提供具體的操作方式或程式碼範例。
+
+這題我們先來看題目背景，再進入詳解：
+
+🧩 題目解釋：
+
+你負責的專案是讓一家加密貨幣公司的國際匯款應用程式走向全球。
+
+你的目標是確保應用程式的資料庫在多個區域（region）中保持高度可用性（High Availability）。
+
+題目問的是：使用 Amazon RDS 的 Multi-AZ 部署 有哪些好處？（選兩個）
+
+✅ 正確答案詳解：
+
+✅ 1.
+
+Provides enhanced database durability in the event of a DB instance component failure or an Availability Zone outage.
+
+- 📌 Multi-AZ 部署會在另一個可用區（AZ）建立一個同步複寫的 standby 資料庫。
+
+- 一旦主資料庫發生硬體故障或該 AZ 宕機，會自動 failover 到 standby，不需人工干預。
+
+- ✅ 因此，大幅提升容錯性與資料耐久性（durability）。
+
+✅ 2.
+
+Increased database availability in the case of system upgrades like OS patching or DB Instance scaling.
+
+- 📌 在需要進行系統升級（如作業系統更新或 DB 規模擴展）時，
+
+- 
+
+- ✅ 這種方式提升了可用性（availability），特別適合生產環境。
+
+❌ 錯誤選項解析：
+
+✘
+
+Creates a primary DB Instance and synchronously replicates the data to a standby instance in a different AZ in a different region.
+
+- ❌ 錯在「different region（不同區域）」這句。
+
+- ✅ Multi-AZ 是跨可用區（AZ），但都是**在同一個區域（region）**裡。
+
+✘
+
+Significantly increases the database performance.
+
+- ❌ standby 資料庫不提供讀取服務（除非使用 Aurora Multi-AZ），所以不提升效能。
+
+- ✅ 它的目的是可用性不是性能。
+
+✘
+
+Provides SQL optimization.
+
+- ❌ 與 SQL 優化無關。
+
+- Multi-AZ 不會改變查詢語法或執行計劃，只影響底層可用性。
+
+🧠 補充建議：
+
+如果你的目標是實現跨區域（region）高可用性與全球存取，那就應該考慮：
+
+- ✅ Amazon Aurora Global Database：支援一個主區域 + 多個只讀區域，適合全球應用。
+
+- ✅ 或搭配 跨區域 read replica（適用於 MySQL、PostgreSQL）。
+
+如果你想，我可以幫你比較 Multi-AZ 與 Aurora Global Database 的差異。
+
+這是一個非常實用也常被混淆的問題。
+
+你問的是：
+
+IAM Database Authentication 與使用 Root Certificate (SSL) 的差別是什麼？
+
+---
 # 2025-07-25 筆記
 
 當然，以下是上述內容的中文翻譯：
