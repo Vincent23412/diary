@@ -1,3 +1,175 @@
+# 2025-07-27 筆記
+
+ 
+
+你這題答對得非常好！這是一題典型的 AWS Hybrid Cloud + Storage Gateway + Lifecycle Policy 題型，以下幫你整理重點邏輯，方便之後複習或應用到相似情境：
+
+✅ 正確選項：
+
+Launch a new file gateway that connects to your on-premises data center using AWS Storage Gateway. Upload the documents to the file gateway and set up a lifecycle policy to move the data into Glacier for data archival.
+
+🎯 題目需求拆解：
+
+🔍 為什麼是 File Gateway？
+
+❌ 其他選項為何不行？
+
+🔸 Tape Gateway
+
+- 雖支援 Glacier 備份，但是虛擬磁帶形式，不支援 SMB 或快速檔案存取
+
+- 無本地快取機制，不利低延遲需求
+
+- 檔案恢復通常需數小時甚至數天
+
+🔸 EBS + Direct Connect
+
+- EBS 為區塊儲存，不支援 SMB 協定存取
+
+- 將 EBS snapshot 搬至 S3 + Glacier 雖可達儲存需求，但流程繁複且成本高
+
+- 無本地快取，不利低延遲讀取
+
+🔸 AWS DataSync
+
+- 適合一次性大量資料遷移
+
+- 不提供本地快取機制
+
+- 無法做到 SMB 協定存取，僅支援 Linux NFS/NAS 資料遷移
+
+🧠 小結：
+
+如果你未來遇到以下關鍵詞：「混合雲、SMB 存取、本地快取、S3 備份、Glacier 歸檔」，就可以直覺聯想 File Gateway。有需要我也可以幫你畫一張簡單的架構圖來輔助理解！
+
+這題你答對得非常好！這裡幫你統整「CloudWatch 內建 vs 自訂指標」的重點，讓你在考場或實務上都能快速分辨哪些指標是「需要額外安裝或設定的 custom metrics」。
+
+✅ 正確答案：
+
+Memory Utilization of an EC2 instance
+
+🔍 預設 CloudWatch EC2 Metrics（不需自訂）：
+
+CloudWatch 預設會自動提供下列指標（每 5 分鐘一次，開啟詳細監控後為 1 分鐘）：
+
+❌ 無法透過預設 CloudWatch 取得（需自訂）：
+
+以下這些指標屬於作業系統層級，不屬於 EC2 hypervisor 層面，所以 AWS 不會自動收集，需透過 CloudWatch Agent 或 CloudWatch Scripts 自行上傳：
+
+🧠 小技巧：一眼分辨是否需要自訂
+
+凡是牽涉到「RAM、磁碟容量（非 IOPS）、系統內部的空間使用情況」幾乎都是需要安裝 CloudWatch Agent 才能收集的指標。
+
+📦 如何設定自訂 Memory Utilization？
+
+你可以透過以下兩種方式：
+
+安裝 CloudWatch Agent
+
+CloudWatch Monitoring Scripts (舊方法)
+
+如果你之後在考題或架構設計中看到關於：
+
+- 監控記憶體
+
+- 磁碟空間
+
+- Swap 或 PageFile
+這類需求時，關鍵字是 CloudWatch Agent 與 Custom Metrics！
+
+有需要我可以幫你補一份 CloudWatch Agent 安裝與設定的教學 👇
+
+你這題又答對了，很不錯！這是一道典型針對 Amazon EKS 安全性強化 的考題，重點在於「etcd 的加密」。我們來快速整理一下觀念：
+
+✅ 正確選項：
+
+Enable secret encryption with a new AWS KMS key on an existing Amazon EKS cluster to encrypt sensitive data stored in the EKS cluster’s etcd key-value store.
+
+🎯 題目重點解析：
+
+🔐 解法關鍵知識：
+
+🔹 etcd 是什麼？
+
+- Kubernetes 的關鍵元件
+
+- 是一個 key-value 資料庫，儲存整個叢集的設定狀態，包括 Secrets、ConfigMaps 等敏感資料
+
+🔹 預設情況下，etcd 中的 secrets 是
+
+明文儲存
+
+- 意即：有權限存取 etcd 的人就能看到機密資料的原文
+
+🔹 要保護它的唯一標準方法是：
+
+➤ 啟用 Kubernetes Secret Encryption with AWS KMS
+
+這個動作會：
+
+- 使用自定義的 KMS key
+
+- 讓 K8s 在寫入 etcd 前先加密 secrets
+
+❌ 其他選項錯在哪？
+
+📌 小結：如何在 Amazon EKS 加密 Secrets？
+
+建立一個 AWS KMS key（建議使用 Customer Managed Key）
+
+建立或更新 EKS 叢集，啟用 secret encryption（可用 eksctl）
+
+確保新的 secrets 自動被加密並儲存於 etcd 中
+
+如果你之後在考題中看到這些 keyword：
+
+- “etcd”
+
+- “secrets”
+
+- “sensitive configuration”
+
+- “KMS”
+
+- “encrypt at rest”
+
+那正確答案幾乎一定是：EKS Secret Encryption using KMS
+
+需要我幫你示範怎麼用 eksctl 或 AWS CLI 來開啟 secret encryption 的話，也可以說一聲，我可以給你指令 ✅
+
+你這題答得非常好！這是考 企業身份整合（Enterprise Identity Federation）+ S3 存取控管 的典型設計題目。下面幫你整理考點與實作重點，讓你理解更扎實：
+
+✅ 正確答案：
+
+Set up a Federation proxy or an Identity provider, and use AWS Security Token Service (STS) to generate temporary tokens.
+
+Configure an IAM role and an IAM Policy to access the bucket.
+
+🎯 題目重點需求：
+
+🔐 解法重點：
+
+✅ 1. 使用 AWS STS + Identity Provider + Federation
+
+- 用公司內部的 AD 或 LDAP 做 SAML 2.0 聯邦登入
+
+- 搭配 AWS STS 發 temporary credentials（不需建立 IAM user）
+
+- 可搭配 AD FS、Okta、JumpCloud 等工具建立 SAML assertion
+
+✅ 2. 設定 IAM Role + Policy 控制資料夾存取
+
+- 建立一個 IAM Role 給所有員工共用（由 Identity Provider 授權切換）
+
+- IAM Policy 使用變數，例如：
+
+"Resource": "arn:aws:s3:::your-bucket-name/home/${aws:username}/*"
+
+- 這樣每個人登入後只能看到自己對應的資料夾（例如 /home/alice/）
+
+❌ 錯誤選項解析：
+
+---
 # 2025-07-26 筆記
 
 你答對了 ✅
