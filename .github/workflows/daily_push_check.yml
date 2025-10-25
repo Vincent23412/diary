@@ -2,7 +2,7 @@ name: Daily Push Check
 
 on:
   schedule:
-    - cron: "0 14 * * *" # 台灣時間晚上 10 點 (UTC +8 = 14 UTC)
+    - cron: "0 15 * * *" # 台灣時間晚上 10 點 (UTC +8 = 14 UTC)
   workflow_dispatch: # 手動觸發也可以
 
 jobs:
