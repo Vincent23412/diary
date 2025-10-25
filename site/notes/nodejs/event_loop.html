@@ -1,0 +1,318 @@
+<!doctype html>
+<html lang="zh-Hant-TW">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Event Loop</title>
+  <link rel="stylesheet" href="/notes/style.css" />
+</head>
+<body>
+  <header class="container py-24">
+    <h1 class="title">Event Loop</h1>
+    <nav class="nav">
+      <a href="/notes/nodejs/index.html" class="nav-link">← 回分類</a>
+      <a href="/notes/index.html" class="nav-link">回總覽</a>
+    </nav>
+  </header>
+
+  <main class="container card">
+    <article class="post-content">
+      <h1 id="nodejs">Node.js 事件迴圈與任務分類總整理</h1>
+<h2 id="6">🔁 事件迴圈的 6 個階段（每一輪都會跑一次）</h2>
+<ol>
+<li>
+<p><strong>timers</strong>
+   - 執行 <code>setTimeout</code>、<code>setInterval</code> 到期的回呼</p>
+</li>
+<li>
+<p><strong>pending callbacks</strong>
+   - 處理某些 I/O 回呼（暫存回呼）</p>
+</li>
+<li>
+<p><strong>idle, prepare</strong>
+   - 僅內部使用（你可以忽略）</p>
+</li>
+<li>
+<p><strong>poll</strong>
+   - 等待新的 I/O 事件，並執行對應的 I/O 回呼（如 <code>fs.readFile</code>）
+   - 沒有待處理 I/O 時，會嘗試移動到下一階段</p>
+</li>
+<li>
+<p><strong>check</strong>
+   - 執行 <code>setImmediate</code> 的回呼</p>
+</li>
+<li>
+<p><strong>close callbacks</strong>
+   - 處理如 <code>socket.on('close')</code> 的回呼</p>
+</li>
+</ol>
+<hr />
+<h2 id="microtask">🔸 微任務（microtask）</h2>
+<ul>
+<li><strong>定義：</strong> 每個階段執行結束後，會「立刻執行」的任務</li>
+<li><strong>常見來源：</strong></li>
+<li><code>Promise.then/catch/finally</code></li>
+<li><code>queueMicrotask</code></li>
+</ul>
+<p>📌 在每個階段「<strong>結束前</strong>」都會清空微任務佇列（queue）</p>
+<hr />
+<h2 id="macrotask">🔹 宏任務（macrotask）</h2>
+<ul>
+<li><strong>定義：</strong> 被排入事件迴圈各階段的回呼</li>
+<li><strong>常見類型（依據所屬階段分類）：</strong></li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>階段</th>
+<th>任務類型</th>
+<th>範例</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>timers</td>
+<td><code>setTimeout</code>, <code>setInterval</code></td>
+<td><code>setTimeout(fn, 0)</code></td>
+</tr>
+<tr>
+<td>poll</td>
+<td>I/O 回呼</td>
+<td><code>fs.readFile</code>, <code>net</code>, <code>HTTP</code> 等</td>
+</tr>
+<tr>
+<td>check</td>
+<td><code>setImmediate</code></td>
+<td><code>setImmediate(fn)</code></td>
+</tr>
+<tr>
+<td>close</td>
+<td>關閉資源回呼</td>
+<td><code>socket.on('close')</code></td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="_1">🧠 執行順序總結（每輪事件迴圈）</h2>
+<p>🔁 每一輪事件迴圈順序如下：</p>
+<ol>
+<li>
+<p>timers 階段（到期的 setTimeout / setInterval）
+   → 執行微任務（microtask queue）</p>
+</li>
+<li>
+<p>pending callbacks
+   → 執行微任務</p>
+</li>
+<li>
+<p>idle, prepare
+   → 執行微任務</p>
+</li>
+<li>
+<p>poll（I/O 回呼）
+   → 執行微任務</p>
+</li>
+<li>
+<p>check（setImmediate）
+   → 執行微任務</p>
+</li>
+<li>
+<p>close callbacks
+   → 執行微任務</p>
+</li>
+</ol>
+<p>✅ <strong>微任務插隊原則：</strong>
+- 每個階段執行完主邏輯後 → 會清空微任務佇列
+- 所以 <code>Promise.then</code> 常常比 <code>setTimeout(fn, 0)</code> 快</p>
+<hr />
+<h2 id="settimeout-vs-setimmediate">🔄 特例說明：setTimeout vs setImmediate</h2>
+<table>
+<thead>
+<tr>
+<th>執行位置</th>
+<th>誰比較早印？</th>
+<th>原因</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>主程式中（CommonJS）</strong></td>
+<td><code>setTimeout</code> 先</td>
+<td>timers 階段在 check 前</td>
+</tr>
+<tr>
+<td><strong>主程式中（ESM 模組）</strong></td>
+<td><code>setImmediate</code> 可能先</td>
+<td>Node ESM 初始化後直接進入 check 階段</td>
+</tr>
+<tr>
+<td><strong>I/O 回呼中</strong></td>
+<td><code>setImmediate</code> 通常會比 <code>setTimeout</code> 早印</td>
+<td>I/O 回呼在 poll，setImmediate 直接進入 check 階段</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="_2">📌 小結重點筆記</h2>
+<ul>
+<li><code>setTimeout(fn, 0)</code> ≠ 立即執行，它會排到下一輪的 <code>timers</code> 階段</li>
+<li><code>Promise.then()</code> 是微任務，會「插隊」在同一輪階段結束時執行</li>
+<li><code>setImmediate()</code> 排到 <code>check</code> 階段，<strong>常常在 I/O 回呼後立即執行</strong></li>
+<li><strong>ESM 模組與 CommonJS 在事件迴圈初始化時有些差異</strong></li>
+</ul>
+<h1 id="nodejs_1">Node.js 事件迴圈與任務分類總整理</h1>
+<h2 id="6_1">🔁 事件迴圈的 6 個階段（每一輪都會跑一次）</h2>
+<ol>
+<li>
+<p><strong>timers</strong>
+   - 執行 <code>setTimeout</code>、<code>setInterval</code> 到期的回呼</p>
+</li>
+<li>
+<p><strong>pending callbacks</strong>
+   - 處理某些 I/O 回呼（暫存回呼）</p>
+</li>
+<li>
+<p><strong>idle, prepare</strong>
+   - 僅內部使用（你可以忽略）</p>
+</li>
+<li>
+<p><strong>poll</strong>
+   - 等待新的 I/O 事件，並執行對應的 I/O 回呼（如 <code>fs.readFile</code>）
+   - 沒有待處理 I/O 時，會嘗試移動到下一階段</p>
+</li>
+<li>
+<p><strong>check</strong>
+   - 執行 <code>setImmediate</code> 的回呼</p>
+</li>
+<li>
+<p><strong>close callbacks</strong>
+   - 處理如 <code>socket.on('close')</code> 的回呼</p>
+</li>
+</ol>
+<hr />
+<h2 id="microtask_1">🔸 微任務（microtask）</h2>
+<ul>
+<li><strong>定義：</strong> 每個階段執行結束後，會「立刻執行」的任務</li>
+<li><strong>常見來源：</strong></li>
+<li><code>Promise.then/catch/finally</code></li>
+<li><code>queueMicrotask</code></li>
+</ul>
+<p>📌 在每個階段「<strong>結束前</strong>」都會清空微任務佇列（queue）</p>
+<hr />
+<h2 id="macrotask_1">🔹 宏任務（macrotask）</h2>
+<ul>
+<li><strong>定義：</strong> 被排入事件迴圈各階段的回呼</li>
+<li><strong>常見類型（依據所屬階段分類）：</strong></li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>階段</th>
+<th>任務類型</th>
+<th>範例</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>timers</td>
+<td><code>setTimeout</code>, <code>setInterval</code></td>
+<td><code>setTimeout(fn, 0)</code></td>
+</tr>
+<tr>
+<td>poll</td>
+<td>I/O 回呼</td>
+<td><code>fs.readFile</code>, <code>net</code>, <code>HTTP</code> 等</td>
+</tr>
+<tr>
+<td>check</td>
+<td><code>setImmediate</code></td>
+<td><code>setImmediate(fn)</code></td>
+</tr>
+<tr>
+<td>close</td>
+<td>關閉資源回呼</td>
+<td><code>socket.on('close')</code></td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="_3">🧠 執行順序總結（每輪事件迴圈）</h2>
+<p>🔁 每一輪事件迴圈順序如下：</p>
+<ol>
+<li>
+<p>timers 階段（到期的 setTimeout / setInterval）
+   → 執行微任務（microtask queue）</p>
+</li>
+<li>
+<p>pending callbacks
+   → 執行微任務</p>
+</li>
+<li>
+<p>idle, prepare
+   → 執行微任務</p>
+</li>
+<li>
+<p>poll（I/O 回呼）
+   → 執行微任務</p>
+</li>
+<li>
+<p>check（setImmediate）
+   → 執行微任務</p>
+</li>
+<li>
+<p>close callbacks
+   → 執行微任務</p>
+</li>
+</ol>
+<p>✅ <strong>微任務插隊原則：</strong>
+- 每個階段執行完主邏輯後 → 會清空微任務佇列
+- 所以 <code>Promise.then</code> 常常比 <code>setTimeout(fn, 0)</code> 快</p>
+<hr />
+<h2 id="settimeout-vs-setimmediate_1">🔄 特例說明：setTimeout vs setImmediate</h2>
+<table>
+<thead>
+<tr>
+<th>執行位置</th>
+<th>誰比較早印？</th>
+<th>原因</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>主程式中（CommonJS）</strong></td>
+<td><code>setTimeout</code> 先</td>
+<td>timers 階段在 check 前</td>
+</tr>
+<tr>
+<td><strong>主程式中（ESM 模組）</strong></td>
+<td><code>setImmediate</code> 可能先</td>
+<td>Node ESM 初始化後直接進入 check 階段</td>
+</tr>
+<tr>
+<td><strong>I/O 回呼中</strong></td>
+<td><code>setImmediate</code> 通常會比 <code>setTimeout</code> 早印</td>
+<td>I/O 回呼在 poll，setImmediate 直接進入 check 階段</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="_4">📌 小結重點筆記</h2>
+<ul>
+<li><code>setTimeout(fn, 0)</code> ≠ 立即執行，它會排到下一輪的 <code>timers</code> 階段</li>
+<li><code>Promise.then()</code> 是微任務，會「插隊」在同一輪階段結束時執行</li>
+<li><code>setImmediate()</code> 排到 <code>check</code> 階段，<strong>常常在 I/O 回呼後立即執行</strong></li>
+<li><strong>ESM 模組與 CommonJS 在事件迴圈初始化時有些差異</strong></li>
+</ul>
+    </article>
+    <p class="post-meta">
+      原文：
+      <a href="https://github.com/Vincent23412/diary/blob/main/content/nodejs/event_loop.md" target="_blank">GitHub</a> ·
+      <a href="https://raw.githubusercontent.com/Vincent23412/diary/main/content/nodejs/event_loop.md" target="_blank">raw</a>
+    </p>
+  </main>
+
+  <footer class="container py-24">
+    <small>最後更新：2025-10-25</small>
+  </footer>
+</body>
+</html>

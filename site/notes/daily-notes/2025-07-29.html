@@ -1,0 +1,208 @@
+<!doctype html>
+<html lang="zh-Hant-TW">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>2025-07-29</title>
+  <link rel="stylesheet" href="/notes/style.css" />
+</head>
+<body>
+  <header class="container py-24">
+    <h1 class="title">2025-07-29</h1>
+    <nav class="nav">
+      <a href="/notes/daily-notes/index.html" class="nav-link">← 回分類</a>
+      <a href="/notes/index.html" class="nav-link">回總覽</a>
+    </nav>
+  </header>
+
+  <main class="container card">
+    <article class="post-content">
+      <p>這題考的是如何在 AWS 架構中部署一個低延遲的 AI 醫療診斷應用程式，並確保：</p>
+<p>使用 Kubernetes（EKS） 部署應用程式</p>
+<p>能透過 IAM 身分驗證結合 RBAC 授權</p>
+<p>部署在 5G 網路邊緣，達到 毫秒級延遲</p>
+<p>✅ 正確選項解釋前，先來看題目要什麼：</p>
+<p>🧐 題目解釋</p>
+<p>一家公司希望加速 AI 醫療診斷應用的效能。這個應用：</p>
+<ul>
+<li>
+<p>要部署在 Kubernetes（EKS）叢集上</p>
+</li>
+<li>
+<p>要有基於 IAM 的 RBAC 存取控制</p>
+</li>
+<li>
+<p>要部署在 5G 電信商網路的邊緣（edge），確保「毫秒級低延遲」</p>
+</li>
+</ul>
+<p>這其實就是在描述：</p>
+<p>AWS Wavelength + Amazon EKS + RBAC + 低延遲</p>
+<p>✅ 正確答案：</p>
+<p>將應用程式部署至 Amazon EKS，並透過 AWS Wavelength 建立 Wavelength 區域的節點群組（node group），同時設定 aws-auth ConfigMap 來管理 IAM 與 RBAC 的存取。</p>
+<p>🧠 詳細解釋</p>
+<p>🔹 為什麼用</p>
+<p>Wavelength Zones？</p>
+<ul>
+<li>
+<p>Wavelength 是 AWS 跟電信業者合作的 5G 邊緣計算服務</p>
+</li>
+<li>
+<p>它會把 AWS 的運算與儲存資源部署在 電信商的資料中心（例如中華電信或 Verizon）</p>
+</li>
+<li>
+<p>這樣一來，使用者的流量不需要穿越網際網路，可直接在 5G 網路邊緣處理，延遲極低（單位為毫秒）</p>
+</li>
+</ul>
+<p>🔹 為什麼用</p>
+<p>EKS + aws-auth ConfigMap？</p>
+<ul>
+<li>
+<p>EKS 控制平面會使用 AWS IAM 身份驗證</p>
+</li>
+<li>
+<p>但授權（RBAC）還是透過 Kubernetes 本身來做</p>
+</li>
+<li>
+<p>aws-auth ConfigMap 就是讓你把 IAM 使用者/角色 映射到 K8s RBAC 權限 的地方</p>
+</li>
+<li>
+<p>當你使用 node group 或 eksctl 建立叢集時，這個 ConfigMap 會自動產生，你也可以手動新增 IAM 使用者/角色</p>
+</li>
+</ul>
+<p>❌ 為什麼其他選項錯？</p>
+<p>1.</p>
+<p>選擇 EKS Connector + Control Tower</p>
+<p>❌</p>
+<ul>
+<li>
+<p>AmazonEKSConnectorAgentRole 是給你管理非 AWS 的 K8s 叢集，例如自架 K8s</p>
+</li>
+<li>
+<p>AWS Control Tower 是用來建立安全的多帳號架構，不會提供 EKS 的 RBAC 控制</p>
+</li>
+</ul>
+<p>2.</p>
+<p>使用 Fargate 部署 Pod 並設定相同 IAM 角色</p>
+<p>❌</p>
+<ul>
+<li>
+<p>Fargate 雖支援 EKS，但在 Wavelength 區域中 Fargate 不支援</p>
+</li>
+<li>
+<p>而且 Fargate Profile 不應與 EC2 Node Group 共用 IAM 角色，這是安全設計上的錯誤</p>
+</li>
+</ul>
+<p>3.</p>
+<p>使用 VPC Endpoint 加上 IAM Authenticator</p>
+<p>❌</p>
+<ul>
+<li>
+<p>Wavelength 區域不支援 VPC Endpoint</p>
+</li>
+<li>
+<p>EKS 本身的控制平面已經內建 IAM Authenticator，不需要你再額外安裝</p>
+</li>
+</ul>
+<p>✅ 結論與記憶口訣</p>
+<p>若題目有關：</p>
+<ul>
+<li>
+<p>5G、低延遲、Wavelength</p>
+</li>
+<li>
+<p>EKS 與 IAM 認證 / RBAC 控制</p>
+</li>
+<li>
+<p>Kubernetes 原生支援</p>
+</li>
+</ul>
+<p>就選擇：</p>
+<p>EKS + Wavelength Node Group + aws-auth ConfigMap</p>
+<p>這是唯一既能部署在 5G 邊緣、又能整合 IAM 與 K8s 權限控制的標準做法。</p>
+<p>當然可以！既然你後天要考 AWS Certified Solutions Architect – Associate (SAA-C03)，這裡我幫你整理一份針對 Kubernetes 與 AWS EKS 的重點惡補 Cheat Sheet，專為 SAA 考試而設計，只包含你在考場會需要的知識，重點在理解用途與服務整合，而不是操作細節。</p>
+<h1 id="aws-eks-kubernetes-cheat-sheet-for-saa-c03">🧠 AWS EKS / Kubernetes Cheat Sheet for SAA-C03</h1>
+<p>🔷 一、Amazon EKS 是什麼？</p>
+<p>🔷 二、EKS 相關元件</p>
+<p>🔷 三、EKS 與 IAM 整合</p>
+<p>🔷 四、EKS 整合 AWS 服務（會考）</p>
+<p>🔷 五、與其他選項比較題常見陷阱</p>
+<p>🔷 六、Wavelength 搭配 EKS 的考點</p>
+<p>📌 最後重點記憶法</p>
+<ul>
+<li>
+<p>EKS 控制平面 → AWS 管</p>
+</li>
+<li>
+<p>Pod 執行地點 → Node Group / Fargate</p>
+</li>
+<li>
+<p>Wavelength → 要用 Node Group，不能用 Fargate</p>
+</li>
+<li>
+<p>IAM + RBAC → 用 aws-auth ConfigMap</p>
+</li>
+<li>
+<p>不是用 Control Tower 來控管 RBAC！</p>
+</li>
+</ul>
+<p>如果你想在考前做個超快總整理，我也可以幫你做一頁 PDF 或圖片版的 Cheatsheet 給你記憶。如果還有題目想練習，我也可以幫你出題加解析！加油，快畢業了 💪</p>
+<p>這題的重點是：如何監控 AWS 的 Service Quotas（服務配額）使用情況，避免資源超出限制，導致系統異常？</p>
+<p>你選錯的選項是：</p>
+<p>✅ Create an Amazon SNS topic and configure it as a target for notifications.</p>
+<p>✅ 先來解釋題目需求</p>
+<p>公司讓不同研究部門自行建立 AWS 資源，但怕哪天配額（例如：EC2 數量、EIP 數量、Lambda 並發限制）被用光。</p>
+<p>🧩 他們想「事先得知」快要用滿，而不是事後才發現服務出錯。</p>
+<p>✅ 正確做法要達成兩件事：</p>
+<p>定時檢查服務配額使用量</p>
+<p>一旦超出閾值就發出警告通知</p>
+<p>✅ 正確選項說明</p>
+<p>✅ 選項 1：</p>
+<p>Write an AWS Lambda function that refreshes the AWS Trusted Advisor Service Limits checks and set it to run every 24 hours.</p>
+<ul>
+<li>
+<p>Trusted Advisor 的 “Service Limits” check 會列出常用服務的目前使用量和限制值。</p>
+</li>
+<li>
+<p>此 check 不是即時的，你必須用 RefreshTrustedAdvisorCheck API 更新結果。</p>
+</li>
+<li>
+<p>實務上會用 Lambda 每 24 小時呼叫更新 → 自動化取得最新狀態 ✅</p>
+</li>
+</ul>
+<p>✅ 選項 2：</p>
+<p>Capture the events using Amazon EventBridge (CloudWatch Events) and use an Amazon SNS topic as the target for notifications.</p>
+<ul>
+<li>
+<p>Trusted Advisor 的更新結果可以用 EventBridge 規則捕捉，例如 CheckItemStatusChange</p>
+</li>
+<li>
+<p>捕捉到 “超出服務配額” 的 event → 發 SNS 通知 ✅</p>
+</li>
+</ul>
+<p>這樣就完成了自動偵測 + 自動通知的配額監控機制。</p>
+<p>❌ 錯誤選項解析</p>
+<p>❌ Create an Amazon SNS topic and configure it as a target for notifications</p>
+<ul>
+<li>
+<p>SNS 是通知工具，但這個選項沒有指定觸發來源</p>
+</li>
+<li>
+<p>它只是建立一個 SNS topic，沒說「誰」來發通知</p>
+</li>
+<li>
+<p>缺乏 EventBridge 或 Lambda 來連接事件 → 不完整</p>
+</li>
+</ul>
+    </article>
+    <p class="post-meta">
+      原文：
+      <a href="https://github.com/Vincent23412/diary/blob/main/content/daily-notes/2025-07-29.md" target="_blank">GitHub</a> ·
+      <a href="https://raw.githubusercontent.com/Vincent23412/diary/main/content/daily-notes/2025-07-29.md" target="_blank">raw</a>
+    </p>
+  </main>
+
+  <footer class="container py-24">
+    <small>最後更新：2025-10-25</small>
+  </footer>
+</body>
+</html>

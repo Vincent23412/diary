@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="zh-Hant-TW">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>2025-06-18</title>
+  <link rel="stylesheet" href="/notes/style.css" />
+</head>
+<body>
+  <header class="container py-24">
+    <h1 class="title">2025-06-18</h1>
+    <nav class="nav">
+      <a href="/notes/daily-notes/index.html" class="nav-link">← 回分類</a>
+      <a href="/notes/index.html" class="nav-link">回總覽</a>
+    </nav>
+  </header>
+
+  <main class="container card">
+    <article class="post-content">
+      <h1 id="npx-tsx">📦 npx 與 tsx 比較與使用筆記</h1>
+<h2 id="npx">🧠 什麼是 npx？</h2>
+<p><code>npx</code> 是 Node.js 附帶的工具（來自 <code>npm</code>），用來<strong>執行 Node 套件</strong>而不需要全域安裝它們。</p>
+<h3 id="_1">📌 特點：</h3>
+<ul>
+<li>可以執行本地或遠端的 npm 套件</li>
+<li>預設會<strong>優先執行專案內的套件</strong></li>
+<li>若本地不存在，會<strong>臨時從 npm 下載</strong>後執行</li>
+<li>適合用於<strong>一次性執行工具命令</strong></li>
+</ul>
+<hr />
+<h2 id="_2">🧪 使用範例</h2>
+<p>```bash
+npx create-react-app my-app
+npx tsx src/index.ts</p>
+<h2 id="npx_1">⚠️ npx 的潛在問題</h2>
+<h2 id="vs-npx">🧰 本地安裝 vs 使用 npx</h2>
+<h2 id="tsx">🛠️ 建議用法：搭配 tsx 使用</h2>
+<h3 id="tsx_1">✅ 推薦做法（專案內安裝 tsx）</h3>
+<p>npm install --save-dev tsx</p>
+<p>在 package.json 中加入：</p>
+<p>"scripts": {
+  "dev": "tsx src/index.ts"
+}</p>
+<p>執行：</p>
+<p>npm run dev</p>
+<p>✅ 這樣可以確保使用本地版本的 tsx，且開發過程穩定、快速。</p>
+<h2 id="tsx_2">🧪 要怎麼確認執行的是本地的 tsx？</h2>
+<p>你可以這樣寫：</p>
+<p>"scripts": {
+  "dev": "which tsx &amp;&amp; tsx src/index.ts"
+}</p>
+<p>輸出應該會是：</p>
+<p>./node_modules/.bin/tsx</p>
+<h2 id="_3">✅ 總結</h2>
+<ul>
+<li>
+<p>npx 適合「一次性執行工具」</p>
+</li>
+<li>
+<p>tsx 建議「本地安裝 + npm script 執行」</p>
+</li>
+<li>
+<p>開發與部署流程中應避免用 npx 呼叫 tsx</p>
+</li>
+</ul>
+<h3 id="nodemon">🔄 使用 nodemon 自動重啟（開發環境）</h3>
+<h3 id="nodemonjson">建議建立 nodemon.json：</h3>
+<p>{
+  "watch": ["src"],
+  "ext": "ts,tsx",
+  "ignore": ["node_modules", "dist"],
+  "exec": "npx tsx src/index.ts",
+  "legacyWatch": true}</p>
+<p>✅ legacyWatch: true 對於 WSL 或 Docker 特別重要！</p>
+<h3 id="packagejson-script">加入 package.json script：</h3>
+<p>{
+  "scripts": {
+    "dev": "nodemon"
+  }
+}</p>
+<h3 id="_4">執行：</h3>
+<p>npm run dev</p>
+<h2 id="_5">✅ 常見問題與解法</h2>
+<h2 id="_6">📝 延伸推薦</h2>
+<ul>
+<li>
+<p>可搭配 dotenv 處理 .env 環境變數</p>
+</li>
+<li>
+<p>可搭配 tsconfig.json 使用 "module": "esnext" + "target": "es2020"，最佳化 tsx 效能</p>
+</li>
+<li>
+<p>可用 pm2 管理正式部署（nodemon 僅供開發）</p>
+</li>
+</ul>
+<p>你目前的 types.d.ts 是用來放 函式簽名（declaration） 的，屬於 TypeScript 的「宣告型別檔案」格式，通常會這樣用：</p>
+<p>// types.d.ts
+declare function myGlobalFn(x: number): string</p>
+<p>這是給 全域函數或沒有模組的第三方函式庫補型別 用的。</p>
+<h3 id="report-typesdts">✅ 建議做法：不要把 report 型別放進 types.d.ts</h3>
+<p>因為：</p>
+<ul>
+<li>
+<p>types.d.ts 主要是宣告 global 或補第三方函式型別，不適合放業務邏輯用的 model。</p>
+</li>
+<li>
+<p>放在那邊可能會讓 Report 型別變成全域的，增加維護成本。</p>
+</li>
+<li>
+<p>你之後會有越來越多 model（例如 User, Post, Comment），分開會更清楚。</p>
+</li>
+</ul>
+<h3 id="_7">✅ 建議目錄結構：</h3>
+<p>src/
+├── types/
+│   ├── db.ts         # 放各種資料表 model，例如 Report
+│   └── types.d.ts    # 放 declare function / global types</p>
+<h3 id="srctypesdbts">✅ 建議內容（src/types/db.ts）：</h3>
+<p>export interface Report {
+  cid: string
+}</p>
+<p>然後你在使用的地方匯入：</p>
+<p>import { Report } from '../types/db'</p>
+<h3 id="indexts">✅ 加分技巧：index.ts 整合所有型別（可選）</h3>
+<p>// src/types/index.ts
+export * from './db'</p>
+<p>這樣其他地方可以這樣引入：</p>
+<p>import { Report } from '../types'</p>
+<h3 id="_8">✅ 使用方式</h3>
+<p>import { Report } from '../types/db'</p>
+<h3 id="typesindexts">✅ 可選：使用 types/index.ts 整合</h3>
+<p>// index.ts
+export * from './db'</p>
+<h2 id="declaration-file">📌 型別檔（Declaration File）是什麼？</h2>
+<p>TypeScript 的型別檔（副檔名為 .d.ts）是用來描述一個函數、物件、模組或全域變數的型別，但不包含實作邏輯。常用於：</p>
+<ul>
+<li>
+<p>為沒有型別定義的 JS 套件提供型別提示（如 @types/xxx）</p>
+</li>
+<li>
+<p>描述全域變數或全域函式的型別</p>
+</li>
+<li>
+<p>在專案中集中管理型別定義</p>
+</li>
+</ul>
+<h2 id="typesdts">📁 為什麼放在 types.d.ts 就能被找到？</h2>
+<h3 id="typescript-dts">✅ TypeScript 編譯器會自動載入 .d.ts：</h3>
+<p>專案中任何位置的 .d.ts 檔案 都會被自動載入，只要：</p>
+<p>不需要顯式 import，只要是全域型別就能生效</p>
+<p>例如你的 tsconfig.json 包含：</p>
+<p>"include": ["src", "types.d.ts"]</p>
+<p>就會把 types.d.ts 自動編入整個專案的型別上下文。</p>
+<h2 id="functs">🔍 為什麼 func.ts 不行？</h2>
+<p>因為 .ts 是一般模組程式碼檔案，不會被當作全域型別檔處理，具體行為有差：</p>
+<h3 id="_9">✅ 正確用法：</h3>
+<ul>
+<li>
+<p>想要全域型別生效：請寫在 .d.ts 裡</p>
+</li>
+<li>
+<p>若是模組型別或具體邏輯，請使用 .ts 並搭配 import</p>
+</li>
+</ul>
+<h2 id="_10">🧠 延伸建議：如何組織大型專案型別？</h2>
+<p>src/
+  types/
+    global.d.ts         # 全域型別定義
+    report.d.ts         # 特定功能模組的型別
+  controllers/
+  db/
+  index.ts
+tsconfig.json</p>
+<p>tsconfig.json 內：</p>
+<p>{
+  "include": ["src"]
+}</p>
+    </article>
+    <p class="post-meta">
+      原文：
+      <a href="https://github.com/Vincent23412/diary/blob/main/content/daily-notes/2025-06-18.md" target="_blank">GitHub</a> ·
+      <a href="https://raw.githubusercontent.com/Vincent23412/diary/main/content/daily-notes/2025-06-18.md" target="_blank">raw</a>
+    </p>
+  </main>
+
+  <footer class="container py-24">
+    <small>最後更新：2025-10-25</small>
+  </footer>
+</body>
+</html>

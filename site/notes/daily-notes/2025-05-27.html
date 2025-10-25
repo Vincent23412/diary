@@ -1,0 +1,240 @@
+<!doctype html>
+<html lang="zh-Hant-TW">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>2025-05-27</title>
+  <link rel="stylesheet" href="/notes/style.css" />
+</head>
+<body>
+  <header class="container py-24">
+    <h1 class="title">2025-05-27</h1>
+    <nav class="nav">
+      <a href="/notes/daily-notes/index.html" class="nav-link">← 回分類</a>
+      <a href="/notes/index.html" class="nav-link">回總覽</a>
+    </nav>
+  </header>
+
+  <main class="container card">
+    <article class="post-content">
+      <h1 id="0527">05/27 學習筆記</h1>
+<h2 id="1-github-actions">1. GitHub Actions 基本結構與語法</h2>
+<p>一個 GitHub Action workflow 通常放在 repo 裡的：</p>
+<p>.github/workflows/xxx.yml</p>
+<div class="codehilite"><pre><span></span><code><span class="err">###</span><span class="w"> </span><span class="n">範例</span><span class="w"> </span><span class="err">`</span><span class="p">.</span><span class="n">yml</span><span class="err">`</span><span class="w"> </span><span class="n">檔案</span><span class="err">：</span>
+
+<span class="err">```</span><span class="n">yaml</span>
+<span class="nl">name</span><span class="p">:</span><span class="w"> </span><span class="n">My</span><span class="w"> </span><span class="n">Workflow</span>
+
+<span class="k">on</span><span class="err">:</span>
+<span class="w">  </span><span class="nl">push</span><span class="p">:</span>
+<span class="w">    </span><span class="nl">branches</span><span class="p">:</span><span class="w"> </span><span class="o">[</span><span class="n">main</span><span class="o">]</span>
+
+<span class="nl">jobs</span><span class="p">:</span>
+<span class="w">  </span><span class="nl">build</span><span class="p">:</span>
+<span class="w">    </span><span class="n">runs</span><span class="o">-</span><span class="k">on</span><span class="err">:</span><span class="w"> </span><span class="n">ubuntu</span><span class="o">-</span><span class="n">latest</span>
+<span class="w">    </span><span class="nl">steps</span><span class="p">:</span>
+<span class="w">      </span><span class="o">-</span><span class="w"> </span><span class="nl">uses</span><span class="p">:</span><span class="w"> </span><span class="n">actions</span><span class="o">/</span><span class="n">checkout</span><span class="nv">@v3</span>
+<span class="w">      </span><span class="o">-</span><span class="w"> </span><span class="nl">run</span><span class="p">:</span><span class="w"> </span><span class="n">echo</span><span class="w"> </span><span class="ss">&quot;Hello GitHub Actions!&quot;</span>
+</code></pre></div>
+
+<h2 id="2-vi">2. vi 操作與刪除指令</h2>
+<h3 id="vi">🔁 vi 有三種主要模式：</h3>
+<table>
+<thead>
+<tr>
+<th>模式</th>
+<th>作用</th>
+<th>進入方式</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>一般模式</td>
+<td>瀏覽、移動、刪除、複製等</td>
+<td>開啟時預設是這個</td>
+</tr>
+<tr>
+<td>插入模式</td>
+<td>編輯文字（可打字）</td>
+<td>按 <code>i</code>、<code>a</code>、<code>o</code></td>
+</tr>
+<tr>
+<td>命令模式</td>
+<td>儲存、退出、搜尋、跳行等</td>
+<td>按 <code>:</code> 進入命令列</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h3 id="_1">✍️ 插入文字（進入插入模式）：</h3>
+<table>
+<thead>
+<tr>
+<th>指令</th>
+<th>意義</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>i</code></td>
+<td>在目前位置前插入</td>
+</tr>
+<tr>
+<td><code>a</code></td>
+<td>在目前位置後插入</td>
+</tr>
+<tr>
+<td><code>o</code></td>
+<td>在下一行新增插入</td>
+</tr>
+<tr>
+<td><code>Esc</code></td>
+<td>回到一般模式</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h3 id="_2">🔀 游標移動：</h3>
+<table>
+<thead>
+<tr>
+<th>鍵</th>
+<th>意義</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>h</code></td>
+<td>左</td>
+</tr>
+<tr>
+<td><code>l</code></td>
+<td>右</td>
+</tr>
+<tr>
+<td><code>j</code></td>
+<td>下</td>
+</tr>
+<tr>
+<td><code>k</code></td>
+<td>上</td>
+</tr>
+<tr>
+<td><code>gg</code></td>
+<td>移動到第一行</td>
+</tr>
+<tr>
+<td><code>G</code></td>
+<td>移動到最後一行</td>
+</tr>
+<tr>
+<td><code>:n</code></td>
+<td>跳到第 n 行</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h3 id="_3">❌ 刪除指令：</h3>
+<table>
+<thead>
+<tr>
+<th>指令</th>
+<th>意義</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>x</code></td>
+<td>刪除游標所在字元</td>
+</tr>
+<tr>
+<td><code>dd</code></td>
+<td>刪除整行</td>
+</tr>
+<tr>
+<td><code>d3d</code></td>
+<td>刪除往下 3 行</td>
+</tr>
+<tr>
+<td><code>:78,461d</code></td>
+<td>刪除第 78 到 461 行</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h3 id="_4">💾 儲存與退出：</h3>
+<table>
+<thead>
+<tr>
+<th>指令</th>
+<th>意義</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>:w</code></td>
+<td>儲存</td>
+</tr>
+<tr>
+<td><code>:q</code></td>
+<td>離開</td>
+</tr>
+<tr>
+<td><code>:wq</code></td>
+<td>儲存並離開</td>
+</tr>
+<tr>
+<td><code>:q!</code></td>
+<td>不儲存強制離開</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h3 id="_5">🔍 搜尋與取代：</h3>
+<table>
+<thead>
+<tr>
+<th>指令</th>
+<th>意義</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>/文字</code></td>
+<td>向下搜尋</td>
+</tr>
+<tr>
+<td><code>?文字</code></td>
+<td>向上搜尋</td>
+</tr>
+<tr>
+<td><code>n</code> / <code>N</code></td>
+<td>下一個 / 上一個符合結果</td>
+</tr>
+<tr>
+<td><code>:%s/舊/新/g</code></td>
+<td>全文取代（g 表示全域）</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h3 id="_6">✅ 快速三步操作流程：</h3>
+<ol>
+<li><code>i</code> 進入插入模式打字，打完後 <code>Esc</code></li>
+<li><code>:w</code> 儲存</li>
+<li><code>:q</code> 離開（或用 <code>:wq</code> 一次完成）</li>
+</ol>
+    </article>
+    <p class="post-meta">
+      原文：
+      <a href="https://github.com/Vincent23412/diary/blob/main/content/daily-notes/2025-05-27.md" target="_blank">GitHub</a> ·
+      <a href="https://raw.githubusercontent.com/Vincent23412/diary/main/content/daily-notes/2025-05-27.md" target="_blank">raw</a>
+    </p>
+  </main>
+
+  <footer class="container py-24">
+    <small>最後更新：2025-10-25</small>
+  </footer>
+</body>
+</html>

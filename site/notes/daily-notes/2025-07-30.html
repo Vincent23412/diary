@@ -1,0 +1,243 @@
+<!doctype html>
+<html lang="zh-Hant-TW">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>2025-07-30</title>
+  <link rel="stylesheet" href="/notes/style.css" />
+</head>
+<body>
+  <header class="container py-24">
+    <h1 class="title">2025-07-30</h1>
+    <nav class="nav">
+      <a href="/notes/daily-notes/index.html" class="nav-link">← 回分類</a>
+      <a href="/notes/index.html" class="nav-link">回總覽</a>
+    </nav>
+  </header>
+
+  <main class="container card">
+    <article class="post-content">
+      <p>❓題目重點：</p>
+<ul>
+<li>
+<p>投票瞬間數十萬筆請求湧入 EC2（Auto Scaling）</p>
+</li>
+<li>
+<p>EC2 將資料寫入 RDS</p>
+</li>
+<li>
+<p>RDS 撐不住</p>
+</li>
+<li>
+<p>需要無停機的高效率設計方案</p>
+</li>
+</ul>
+<p>✅ 正確答案：</p>
+<p>C) 將前端應用改為發送投票到 Amazon SQS，並使用 Worker 從 SQS 讀取資料寫入資料庫</p>
+<p>✅ 為何選 C？</p>
+<ul>
+<li>
+<p>使用 Amazon SQS 作為非同步緩衝區，讓前端高頻寫入不會直接壓垮資料庫</p>
+</li>
+<li>
+<p>後端 Worker 可根據負載自動擴縮來消化隊列</p>
+</li>
+<li>
+<p>系統更有彈性、可延伸性強，而且是常見的高併發寫入解耦解法</p>
+</li>
+</ul>
+<p>❌ 為何其他選項錯誤？</p>
+<ul>
+<li>
+<p>A) Lambda + API Gateway 無法解決 RDS 的瓶頸，問題根本在資料庫端</p>
+</li>
+<li>
+<p>B) Multi-AZ 是備援（高可用），不是用來「水平擴展」或同時寫入</p>
+</li>
+<li>
+<p>D) EventBridge 定時調整 RDS 規格 ≠ 實時反應投票流量，而且升級/降級會中斷連線</p>
+</li>
+</ul>
+<p>這題考的是 多帳戶存取設計，尤其是 如何讓一個帳戶（安全團隊帳戶）能存取另一個帳戶（生產帳戶）中的資源，並且要符合 AWS 的安全最佳實務。</p>
+<p>✅ 正確答案：</p>
+<p>B) 在生產帳戶中建立 IAM 角色。連接權限政策，以提供安全團隊所需的權限。將安全團隊帳戶新增至信任政策。</p>
+<p>🔍 解釋：</p>
+<p>✅ 為什麼選 B？</p>
+<p>這是 AWS 推薦的「跨帳戶存取」標準做法：</p>
+<ul>
+<li>
+<p>生產帳戶中建立 IAM 角色（例如 AuditAccessRole），附加安全團隊需要的最小權限（例如只讀 CloudTrail、Config 等）。</p>
+</li>
+<li>
+<p>在該角色的「信任政策（trust policy）」中，允許安全帳戶的使用者來 Assume 這個角色。</p>
+</li>
+<li>
+<p>安全團隊成員從自己的帳戶透過 sts:AssumeRole 來短暫取得這個角色的權限，進行稽核。</p>
+</li>
+</ul>
+<p>這種設計的優點：</p>
+<ul>
+<li>
+<p>❗符合最小權限原則（只授予需要的權限）</p>
+</li>
+<li>
+<p>❗不需要建立多個 IAM 使用者或分享密碼</p>
+</li>
+<li>
+<p>✅ 採用 臨時憑證，安全性高</p>
+</li>
+<li>
+<p>✅ 可用 CloudTrail 追蹤誰 Assume 過角色，審計良好</p>
+</li>
+</ul>
+<p>❌ 為什麼其他選項錯？</p>
+<p>A) 為每位安全人員在生產帳戶建立 IAM 使用者</p>
+<ul>
+<li>
+<p>這種方式會造成「使用者分散、難以管理」</p>
+</li>
+<li>
+<p>並且違反 AWS 建議的：不要在多個帳戶創建使用者，而是應使用角色與聯合登入機制</p>
+</li>
+</ul>
+<p>C) 建立新的 IAM 使用者並賦予管理權限</p>
+<ul>
+<li>
+<p>❌ 嚴重違反最小權限原則（只為稽核卻給 full admin）</p>
+</li>
+<li>
+<p>❌ 不利於權限控制與追蹤</p>
+</li>
+</ul>
+<p>D) 建立 IAM 群組並手動把使用者加進去</p>
+<ul>
+<li>問題同 A，仍然是使用者帳號管理過重，不如使用角色 + AssumeRole 機制</li>
+</ul>
+<p>📌 補充：跨帳戶 AssumeRole 設計圖（簡化版）</p>
+<p>[Security Account]</p>
+<p>|</p>
+<p>| (sts:AssumeRole)</p>
+<p>v</p>
+<p>[Production Account]</p>
+<ul>
+<li>
+<p>IAM Role: AuditRole</p>
+</li>
+<li>
+<p>信任 policy：允許 security account 中的 user assume 這個 role</p>
+</li>
+<li>
+<p>權限 policy：例如 CloudTrail:Read, Config:Describe 等</p>
+</li>
+</ul>
+<p>需要我幫你補上 IAM Role 的範本 trust policy 和 permission policy 嗎？</p>
+<p>這題考的是 VPC 與 RDS 的安全性設定，目的是：</p>
+<ul>
+<li>
+<p>✅ 確保 RDS 資料庫無法從 Internet 存取</p>
+</li>
+<li>
+<p>✅ 只能讓 應用層（App Tier）透過指定的 port 存取資料庫</p>
+</li>
+</ul>
+<p>✅ 正確答案：</p>
+<ul>
+<li>
+<p>A) 指定一個僅包含私有子網的 DB Subnet Group 給 RDS</p>
+</li>
+<li>
+<p>E) 在 RDS 的 Security Group 中加入一條 inbound 規則，只允許來自應用層 Security Group 且指定 port 的流量，並移除其他 inbound 規則</p>
+</li>
+</ul>
+<p>🔍 解釋如下：</p>
+<p>✅ A) 使用僅包含 Private Subnet 的 DB Subnet Group</p>
+<ul>
+<li>
+<p>這樣可以確保 RDS 只會部署在私有子網中</p>
+</li>
+<li>
+<p>私有子網沒有 route 到 Internet Gateway，自然就無法被外部存取</p>
+</li>
+<li>
+<p>這是防止 RDS 被直接暴露在公網的第一道防線</p>
+</li>
+</ul>
+<p>✅ E) 精確設定 RDS 的 Security Group</p>
+<ul>
+<li>
+<p>只允許從應用層的 Security Group 發出的連線請求（如 TCP 3306）</p>
+</li>
+<li>
+<p>移除其他不必要的 inbound 規則，達到「最小授權原則」</p>
+</li>
+<li>
+<p>這種 Security Group-to-Security Group 的寫法也比 IP-based 更動態與安全</p>
+</li>
+</ul>
+<p>❌ 錯誤選項解析：</p>
+<p>B) 為每個 RDS 實例附加 ENI 並使用私有 IP</p>
+<ul>
+<li>
+<p>RDS 是托管服務，不能像 EC2 一樣手動管理 ENI</p>
+</li>
+<li>
+<p>ENI 是給自管 EC2 使用，不適用於 RDS</p>
+</li>
+</ul>
+<p>C) 使用 AWS Shield 並更新 Route Table</p>
+<ul>
+<li>
+<p>AWS Shield 是用來防 DDoS 保護的，與 RDS 的存取控制無關</p>
+</li>
+<li>
+<p>調整 Route Table 也不一定能精確控制存取來源，不如透過私有子網 + SG 控制來得安全</p>
+</li>
+</ul>
+<p>D) 設定 Direct Connect 並限制特定 port</p>
+<ul>
+<li>
+<p>Direct Connect 是跨地點連線用的，並非本題要求的網內應用層到資料庫的存取控管手段</p>
+</li>
+<li>
+<p>而且不符合「常規應用層對資料庫連線」的架構需求</p>
+</li>
+</ul>
+<p>✅ 結論與總結</p>
+<p>如需我幫你畫出這個 VPC 架構圖（App → RDS），我也可以幫忙！</p>
+<p>非常正確，你說的沒錯！</p>
+<p>✅</p>
+<p>什麼是 DB Subnet Group？</p>
+<p>在 Amazon RDS 中的 Multi-AZ 部署裡，DB Subnet Group 就是 RDS 所部署的子網路集合，它的用途是：</p>
+<p>告訴 RDS：我要在哪些子網（subnets）裡面去部署主資料庫與備援資料庫。</p>
+<p>📌</p>
+<p>重點整理：DB Subnet Group = RDS Multi-AZ 的子網配置</p>
+<p>🏗️ 一個典型的 Multi-AZ 架構會像這樣：</p>
+<p>➡️ 這兩個 private subnets 組成一個 DB Subnet Group，RDS 就會在不同 AZ 裡自動建立主從複本。</p>
+<p>❗為什麼 RDS 一定要 DB Subnet Group？</p>
+<p>因為：</p>
+<ul>
+<li>
+<p>RDS 是托管服務，你不能手動指定 IP</p>
+</li>
+<li>
+<p>AWS 幫你分配 IP 並維護高可用架構時，需要你先說「我可以接受這些子網」</p>
+</li>
+<li>
+<p>這樣 AWS 才能確保 主從節點能分佈在不同 AZ 中的安全子網裡</p>
+</li>
+</ul>
+<p>補充：單 AZ 也會用到 DB Subnet Group 嗎？</p>
+<p>✅ 會！</p>
+    </article>
+    <p class="post-meta">
+      原文：
+      <a href="https://github.com/Vincent23412/diary/blob/main/content/daily-notes/2025-07-30.md" target="_blank">GitHub</a> ·
+      <a href="https://raw.githubusercontent.com/Vincent23412/diary/main/content/daily-notes/2025-07-30.md" target="_blank">raw</a>
+    </p>
+  </main>
+
+  <footer class="container py-24">
+    <small>最後更新：2025-10-25</small>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,251 @@
+<!doctype html>
+<html lang="zh-Hant-TW">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>2025-06-21</title>
+  <link rel="stylesheet" href="/notes/style.css" />
+</head>
+<body>
+  <header class="container py-24">
+    <h1 class="title">2025-06-21</h1>
+    <nav class="nav">
+      <a href="/notes/daily-notes/index.html" class="nav-link">← 回分類</a>
+      <a href="/notes/index.html" class="nav-link">回總覽</a>
+    </nav>
+  </header>
+
+  <main class="container card">
+    <article class="post-content">
+      <h2 id="rds-postgresql">✅ RDS PostgreSQL 提供資料科學家近即時唯讀存取的高可用架構</h2>
+<h3 id="_1">題目摘要：</h3>
+<p>公司想讓資料科學家能 近即時、唯讀存取生產用的 Amazon RDS for PostgreSQL 資料庫。目前資料庫為 Single-AZ 部署。資料科學家的查詢複雜，但不影響主業務。需求是：</p>
+<ul>
+<li>
+<p>✅ 唯讀</p>
+</li>
+<li>
+<p>✅ 近即時存取</p>
+</li>
+<li>
+<p>✅ 高可用性</p>
+</li>
+<li>
+<p>✅ 成本效益最佳</p>
+</li>
+</ul>
+<h3 id="d-change-the-setup-from-a-single-az-to-a-multi-az-cluster-deployment-with-two-readable-standby-instances-provide-read-endpoints-to-the-data-scientists">✅ 正確答案：D. Change the setup from a Single-AZ to a Multi-AZ cluster deployment with two readable standby instances. Provide read endpoints to the data scientists.</h3>
+<h3 id="d">為什麼選 D？</h3>
+<ul>
+<li>
+<p>Multi-AZ cluster（特別是 Aurora 或新的 RDS Multi-AZ DB cluster）允許部署多個 readable standby instances。</p>
+</li>
+<li>
+<p>可透過 cluster endpoint 給資料科學家 低延遲、近即時的唯讀查詢能力。</p>
+</li>
+<li>
+<p>比起單純的 Multi-AZ standby（無法讀取）或單純 scale-up，更具可用性與成本效益。</p>
+</li>
+<li>
+<p>不會影響主庫效能，且具有 failover 保護。</p>
+</li>
+</ul>
+<h3 id="_2">❌ 錯誤選項解析：</h3>
+<h3 id="a-scale-the-existing-production-database">A. Scale the existing production database</h3>
+<ul>
+<li>
+<p>僅提升主庫效能（e.g. CPU、記憶體）</p>
+</li>
+<li>
+<p>✅ 沒有提供唯讀分流</p>
+</li>
+<li>
+<p>❌ 資料科學家的查詢仍會影響生產主庫</p>
+</li>
+<li>
+<p>❌ 非高可用架構</p>
+</li>
+</ul>
+<h3 id="b-multi-az-with-larger-secondary-standby">B. Multi-AZ with larger secondary standby</h3>
+<ul>
+<li>
+<p>Multi-AZ standby 是 無法用來查詢的，只做故障接手用（❌ 非 readable）</p>
+</li>
+<li>
+<p>提供唯讀存取會失敗</p>
+</li>
+<li>
+<p>❌ 不符合唯讀查詢需求</p>
+</li>
+</ul>
+<h3 id="c-multi-az-read-replica">C. Multi-AZ + 兩個 read replica</h3>
+<ul>
+<li>
+<p>雖然符合唯讀需求，但：</p>
+</li>
+<li>
+<p>❌ 成本效益低於 D</p>
+</li>
+</ul>
+<h3 id="_3">🔍 小知識補充：</h3>
+<ul>
+<li>RDS Multi-AZ DB Cluster（支援 PostgreSQL）：</li>
+</ul>
+<h2 id="cloudfront">✅ 問題：CloudFront 分區內容發布限制</h2>
+<p>一間全球影片串流公司使用 Amazon CloudFront 作為 CDN，並希望分階段將內容推出至不同國家。</p>
+<h3 id="_4">📌 要求：</h3>
+<ul>
+<li>
+<p>限制內容觀看區域</p>
+</li>
+<li>
+<p>未在推出國家的使用者 不能存取該內容</p>
+</li>
+</ul>
+<h2 id="a">🎯 正確答案：A</h2>
+<p>Add geographic restrictions to the content in CloudFront by using an allow list. Set up a custom error message.</p>
+<h2 id="_5">✅ 解釋</h2>
+<ul>
+<li>CloudFront 支援地理限制（Geo restriction）</li>
+</ul>
+<h2 id="_6">❌ 錯誤選項解析</h2>
+<ul>
+<li>
+<p>B. Signed URL 和 Cookies</p>
+</li>
+<li>
+<p>C. 加密內容</p>
+</li>
+<li>
+<p>D. Time-restricted Signed URLs</p>
+</li>
+</ul>
+<h2 id="cloudfront-geo-restriction">📘 補充知識：CloudFront 地理限制（Geo Restriction）</h2>
+<ul>
+<li>
+<p>設定方式：</p>
+</li>
+<li>
+<p>適用場景：</p>
+</li>
+</ul>
+<h2 id="aws-on-prem-dr">✅ 問題：使用 AWS 改善 on-prem 災難復原 (DR)</h2>
+<ul>
+<li>
+<p>應用程式運行在 VM 上，使用 Microsoft SQL Server Standard</p>
+</li>
+<li>
+<p>RPO ≤ 30 秒（資料遺失最多 30 秒）</p>
+</li>
+<li>
+<p>RTO ≤ 60 分鐘（1 小時內必須恢復）</p>
+</li>
+<li>
+<p>需求：盡可能降低成本</p>
+</li>
+</ul>
+<h2 id="c">🎯 正確答案：C</h2>
+<p>Use AWS Elastic Disaster Recovery configured to replicate disk changes to AWS as a pilot light.</p>
+<h2 id="_7">✅ 解釋：</h2>
+<ul>
+<li>AWS Elastic Disaster Recovery (AWS DRS)：</li>
+</ul>
+<h2 id="_8">❌ 錯誤選項解析</h2>
+<ul>
+<li>
+<p>A. Always On Availability Groups（Enterprise 版）</p>
+</li>
+<li>
+<p>B. Warm standby + DMS CDC</p>
+</li>
+<li>
+<p>D. 每晚備份 → S3</p>
+</li>
+</ul>
+<h2 id="pilot-light">📘 補充：Pilot Light 架構說明</h2>
+<ul>
+<li>Pilot Light 架構：</li>
+</ul>
+<h2 id="web-idle">✅ 問題：建置一個具有會員登入的 Web 應用程式，訪問模式不可預期且可能長時間 idle，需成本效益高</h2>
+<h3 id="_9">🎯 需求關鍵點：</h3>
+<ul>
+<li>
+<p>使用者訪問 不穩定且可能 idle → 適合無伺服器架構（serverless）</p>
+</li>
+<li>
+<p>只有 付費用戶才能登入使用</p>
+</li>
+<li>
+<p>需 登入驗證功能</p>
+</li>
+<li>
+<p>要求 成本效益高（MOST cost-effective）</p>
+</li>
+</ul>
+<h2 id="3">✅ 正確答案（3 選項）：</h2>
+<ul>
+<li>
+<p>A. AWS Lambda + API Gateway + DynamoDB</p>
+</li>
+<li>
+<p>C. Amazon Cognito User Pool for authentication</p>
+</li>
+<li>
+<p>E. AWS Amplify + CloudFront for static frontend hosting</p>
+</li>
+</ul>
+<h2 id="_10">✅ 解釋：</h2>
+<h3 id="a-lambda-api-gateway-dynamodb">A. Lambda + API Gateway + DynamoDB ✅</h3>
+<ul>
+<li>
+<p>適合應對不穩定且間歇性訪問（只在需要時觸發）</p>
+</li>
+<li>
+<p>按次計費、免管理伺服器，成本效益高</p>
+</li>
+<li>
+<p>DynamoDB 適合低延遲、無伺服器的 key-value 存取</p>
+</li>
+</ul>
+<h3 id="c-cognito-user-pool">C. Cognito User Pool ✅</h3>
+<ul>
+<li>
+<p>提供 會員註冊與登入驗證（authentication） 的完整方案</p>
+</li>
+<li>
+<p>可搭配 API Gateway + Lambda 驗證授權，保護資源</p>
+</li>
+<li>
+<p>支援 OAuth2、MFA、第三方登入等，免自建登入機制</p>
+</li>
+</ul>
+<h3 id="e-aws-amplify">E. AWS Amplify ✅</h3>
+<ul>
+<li>
+<p>適合前端 static web hosting（HTML、CSS、JS）</p>
+</li>
+<li>
+<p>預設整合 CloudFront，提供高效能 CDN 傳遞</p>
+</li>
+<li>
+<p>成本低、部屬簡便，適合快速建置網站</p>
+</li>
+</ul>
+<h2 id="_11">❌ 錯誤選項解析：</h2>
+<h3 id="b-ecs-rds">B. ECS + RDS ❌</h3>
+<ul>
+<li>ECS 需長期運行 container，成本較高</li>
+</ul>
+    </article>
+    <p class="post-meta">
+      原文：
+      <a href="https://github.com/Vincent23412/diary/blob/main/content/daily-notes/2025-06-21.md" target="_blank">GitHub</a> ·
+      <a href="https://raw.githubusercontent.com/Vincent23412/diary/main/content/daily-notes/2025-06-21.md" target="_blank">raw</a>
+    </p>
+  </main>
+
+  <footer class="container py-24">
+    <small>最後更新：2025-10-25</small>
+  </footer>
+</body>
+</html>

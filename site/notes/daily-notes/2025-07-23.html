@@ -1,0 +1,222 @@
+<!doctype html>
+<html lang="zh-Hant-TW">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>2025-07-23</title>
+  <link rel="stylesheet" href="/notes/style.css" />
+</head>
+<body>
+  <header class="container py-24">
+    <h1 class="title">2025-07-23</h1>
+    <nav class="nav">
+      <a href="/notes/daily-notes/index.html" class="nav-link">← 回分類</a>
+      <a href="/notes/index.html" class="nav-link">回總覽</a>
+    </nav>
+  </header>
+
+  <main class="container card">
+    <article class="post-content">
+      <p>這題考的是 EC2 不同狀態下的計費規則，以下是題目翻譯與正確解釋：</p>
+<p>📘 題目翻譯：</p>
+<p>在 Amazon EC2 中，從啟動（launch）到終止（terminate），你可以靈活管理實例，並透過變更實例狀態來控制成本。</p>
+<p>以下關於 EC2 計費的敘述哪些正確？（選兩項）</p>
+<p>✅ 正確答案解析：</p>
+<p>✅ 1.</p>
+<p>You will be billed when your On-Demand instance is preparing to hibernate with a stopping state.</p>
+<ul>
+<li>
+<p>正確。當實例進入 stopping 狀態時，如果是為了 hibernate（休眠），你仍會被收費，因為 Amazon 會保留 RAM 內容與 EBS 卷等資源。</p>
+</li>
+<li>
+<p>若只是一般的 stop，則不會繼續收費。</p>
+</li>
+</ul>
+<p>✅ 2.</p>
+<p>You will be billed when your Reserved instance is in terminated state.</p>
+<ul>
+<li>正確。即使你終止了 Reserved Instance 的 EC2 實例，只要合約還沒到期，你仍然會依照原本合約被收費（無論有沒有在使用）。</li>
+</ul>
+<p>❌ 錯誤選項解析：</p>
+<p>❌ You will not be billed for any instance usage while an instance is not in the running state.</p>
+<ul>
+<li>錯誤。大多數情況下這是對的，但 準備 hibernate 時（stopping 狀態）仍會收費，因此這個說法過於絕對。</li>
+</ul>
+<p>❌ You will be billed when your Spot instance is preparing to stop with a stopping state.</p>
+<ul>
+<li>錯誤。若 Spot instance 只是進入 stopping（非 hibernation），通常不會收費。</li>
+</ul>
+<p>❌ You will be billed when your On-Demand instance is in pending state.</p>
+<ul>
+<li>錯誤。pending 表示實例在啟動中，但尚未進入 running，不會收費。</li>
+</ul>
+<p>🔍 補充：EC2 計費時機與狀態一覽</p>
+<p>✅ 結論：</p>
+<p>正確答案為：</p>
+<ul>
+<li>
+<p>✅ You will be billed when your On-Demand instance is preparing to hibernate with a stopping state.</p>
+</li>
+<li>
+<p>✅ You will be billed when your Reserved instance is in terminated state.</p>
+</li>
+</ul>
+<p>這題你答對了，對 EC2 狀態與計費理解得很準確 👍</p>
+<p>這題考的是 如何防止開發人員修改 AWS Config 規則，同時要用最少的操作成本（least operational overhead）。</p>
+<p>❓題目翻譯：</p>
+<p>一家公司打算透過 AWS Organizations，給每位開發者一個個人的 AWS 帳號。為了符合法規，他們會在這些新帳號中預先設定 AWS Config 的規則。</p>
+<p>Solutions Architect 必須確保開發人員無法移除或修改任何 AWS Config 的規則。</p>
+<p>哪一種解法最符合需求，且操作負擔最小（least operational overhead）？</p>
+<p>✅ 正確答案：</p>
+<p>將開發者的 AWS 帳號加入一個 Organizational Unit（OU），並為該 OU 附加一個 Service Control Policy（SCP），用來限制 AWS Config 的存取。</p>
+<p>✅ 為什麼這個方法對？</p>
+<ul>
+<li>
+<p>SCP 是一種組織級的政策（policy），可以限制 OU 中所有帳號對特定服務（例如 AWS Config）的最大權限上限。</p>
+</li>
+<li>
+<p>即使帳號裡的 IAM User 或 Role 有 admin 權限，只要 SCP 沒開放，他們就無法執行那些動作。</p>
+</li>
+<li>
+<p>SCP 可以防止使用者（包含 root user）存取 AWS Config。</p>
+</li>
+<li>
+<p>最少操作成本：一次設定 OU 的 SCP，套用所有帳號，無須逐個帳號設定。</p>
+</li>
+</ul>
+<p>❌ 錯誤選項解析：</p>
+<p>Use an IAM Role in the new accounts with an attached IAM trust relationship to disable the access of the root user to AWS Config.</p>
+<ul>
+<li>錯誤原因：IAM policy 無法限制 root user。 IAM Role 的 trust policy 只是定義「誰能 assume 這個角色」，不代表能阻止 root 存取 Config。</li>
+</ul>
+<p>Configure an AWS Config rule in the root account to detect if changes to the new account’s Config rules are made.</p>
+<ul>
+<li>錯誤原因：這只是偵測變更（監控），不是限制權限（防止變更），無法達成題目要求。</li>
+</ul>
+<p>Set up an AWS Control Tower in the root account to detect if there were any changes to the new account’s AWS Config rules...</p>
+<ul>
+<li>
+<p>錯誤原因：AWS Control Tower 是用來建立和管理多帳號架構的工具，而非用來限制特定服務（如 Config）的存取權限。</p>
+</li>
+<li>
+<p>同時這方法還涉及 IAM trust policy，也無法限制 root。</p>
+</li>
+</ul>
+<p>🧠 小總結：SCP 與 IAM 的差異</p>
+<p>如你想，我也可以幫你示範怎麼撰寫 SCP 來禁止修改 AWS Config！</p>
+<p>這題問的是：要部署一個 容器映像（Docker image）打包的應用程式，它需要一個 完全受管的無伺服器運算服務（fully managed serverless compute service），並且在執行時需要 5GB 的暫存空間（ephemeral storage）。</p>
+<p>✅ 正確答案翻譯與解析：</p>
+<p>將應用程式部署在 AWS Lambda 上，使用容器映像支援（Container image support），並將函數的暫存空間設為 5GB。</p>
+<p>✅ 為什麼這答案正確？</p>
+<ul>
+<li>
+<p>Lambda 支援容器映像部署：你可以把應用打包成 Docker image，上傳到 Amazon ECR，然後直接部署到 AWS Lambda。</p>
+</li>
+<li>
+<p>Lambda 支援調整 ephemeral storage：預設是 512MB，但你可以設定從 512MB 到 10GB，滿足臨時資料處理需求。</p>
+</li>
+<li>
+<p>無需管理伺服器或基礎設施：完全 serverless，自動擴展，符合「最少操作成本」與「serverless」的要求。</p>
+</li>
+</ul>
+<p>❌ 錯誤選項解析：</p>
+<p>Deploy the application to an Amazon ECS cluster that uses AWS Fargate tasks</p>
+<ul>
+<li>
+<p>雖然 Fargate 是無需管理 EC2 的容器服務，但它仍然需要你設定 ECS cluster 和 task definition。</p>
+</li>
+<li>
+<p>而且題目明確要求 fully managed serverless，Lambda 才是真正的「serverless」平台。</p>
+</li>
+</ul>
+<p>Deploy the application in an AWS Lambda function with Container image support. Attach an Amazon EFS volume to the function</p>
+<ul>
+<li>
+<p>這是 持久性儲存（persistent storage），不符合「ephemeral（暫存）」的需求。</p>
+</li>
+<li>
+<p>使用 EFS 還需要額外設定 VPC 與 mount target，增加不必要的複雜性。</p>
+</li>
+</ul>
+<p>Deploy the application Amazon ECS cluster with Amazon EC2 worker nodes and attach a 5 GB Amazon EBS volume</p>
+<ul>
+<li>
+<p>ECS + EC2 並不是 serverless 解法，要管理 EC2、EBS、AMI、Auto Scaling 等。</p>
+</li>
+<li>
+<p>顯然不符合「fully managed serverless compute」的條件。</p>
+</li>
+</ul>
+<p>📌 補充：Lambda 的 ephemeral storage 設定方式</p>
+<p>在 AWS Lambda 設定容器映像時，你可以在 Function configuration 裡設定：</p>
+<p>"EphemeralStorage": {</p>
+<p>"Size": 5120</p>
+<p>}</p>
+<p>這樣會讓 /tmp 目錄有 5GB 可用空間給函數運行中使用。</p>
+<p>需要我幫你示範怎麼在 AWS CDK 或 SAM 裡設定這個 5GB 暫存空間嗎？</p>
+<p>你這題的選擇是正確的，來幫你簡單整理重點回顧：</p>
+<p>🎯 題目目標：</p>
+<p>公司想要強制所有 AWS 資源都必須按照標準命名規則進行標籤（tagging），以便後續進行存取控制。解決方案架構師必須檢查未標記（untagged）或標記不合規的資源，而且要選擇操作負擔最小的解法。</p>
+<p>✅ 正確解法：</p>
+<p>使用 AWS Config rule 來偵測不符合標準的 tag（non-compliant tags）</p>
+<p>優點：</p>
+<ul>
+<li>
+<p>最少操作負擔：內建 managed rule（如 required-tags）開箱即用。</p>
+</li>
+<li>
+<p>自動偵測：會持續監控所有新建立或修改的資源。</p>
+</li>
+<li>
+<p>視覺化儀表板：可以在 AWS Config 主控台直接檢視不合規的資源。</p>
+</li>
+<li>
+<p>支援自訂 tag key/value 格式：可以自訂要哪些 tag key 是必要的。</p>
+</li>
+</ul>
+<p>❌ 常見錯誤選項：</p>
+<p>使用 AWS Organizations 的 tag policy + S3 Object Lock 儲存 tag</p>
+<ul>
+<li>
+<p>✅ Tag policy 可以協助標準化 tag 的命名格式，例如大小寫規範。</p>
+</li>
+<li>
+<p>❌ 但無法自動偵測/報告未被標記的資源。</p>
+</li>
+<li>
+<p>❌ S3 Object Lock 在這裡沒有意義，它是用來防止檔案被刪改，不適合處理 tag 稽核。</p>
+</li>
+</ul>
+<p>建立 Lambda function 並搭配 EventBridge 定時檢查</p>
+<ul>
+<li>
+<p>✅ 可行，但你需要寫程式、維護排程，還要自己處理報表與警示。</p>
+</li>
+<li>
+<p>❌ 比起 AWS Config，需要較高的操作成本與維護負擔。</p>
+</li>
+</ul>
+<p>使用 SCP 偵測未正確標記的資源</p>
+<ul>
+<li>
+<p>❌ SCP（Service Control Policy）是用來設限 IAM 最多能被授權什麼操作，不能用來「偵測」哪些資源有或沒有 tag。</p>
+</li>
+<li>
+<p>✅ SCP 可以用來「防止未來創建未打 tag 的資源」，但無法稽核已存在的資源。</p>
+</li>
+</ul>
+<p>🔧 實作建議（若你想進一步操作）：</p>
+<p>在 AWS Config 中啟用 managed rule：</p>
+    </article>
+    <p class="post-meta">
+      原文：
+      <a href="https://github.com/Vincent23412/diary/blob/main/content/daily-notes/2025-07-23.md" target="_blank">GitHub</a> ·
+      <a href="https://raw.githubusercontent.com/Vincent23412/diary/main/content/daily-notes/2025-07-23.md" target="_blank">raw</a>
+    </p>
+  </main>
+
+  <footer class="container py-24">
+    <small>最後更新：2025-10-25</small>
+  </footer>
+</body>
+</html>

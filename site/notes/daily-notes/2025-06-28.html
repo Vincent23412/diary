@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="zh-Hant-TW">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>2025-06-28</title>
+  <link rel="stylesheet" href="/notes/style.css" />
+</head>
+<body>
+  <header class="container py-24">
+    <h1 class="title">2025-06-28</h1>
+    <nav class="nav">
+      <a href="/notes/daily-notes/index.html" class="nav-link">← 回分類</a>
+      <a href="/notes/index.html" class="nav-link">回總覽</a>
+    </nav>
+  </header>
+
+  <main class="container card">
+    <article class="post-content">
+      <p>✅ 正確答案：B. Use AWS Backup to create backup schedules and retention policies for the table.</p>
+<p>✅ 題目解析：</p>
+<p>目標：</p>
+<ul>
+<li>
+<p>保留 使用者交易資料（transaction data） 在 DynamoDB 中</p>
+</li>
+<li>
+<p>保存期限為 7 年</p>
+</li>
+<li>
+<p>追求最低營運負擔（Most operationally efficient）</p>
+</li>
+</ul>
+<p>🧠 各選項分析：</p>
+<p>A. 使用 DynamoDB 的 Point-in-time recovery (PITR)</p>
+<ul>
+<li>
+<p>PITR 可以讓你復原到最近 35 天的任意時間點</p>
+</li>
+<li>
+<p>✅ 適合短期復原用</p>
+</li>
+<li>
+<p>❌ 無法滿足 7 年保存需求</p>
+</li>
+</ul>
+<p>✅ B. 使用 AWS Backup 設定備份排程與保留原則</p>
+<ul>
+<li>
+<p>支援 DynamoDB table 的定期備份與自訂保留期</p>
+</li>
+<li>
+<p>可以設定每天/每週/每月備份並自動保存 7 年 ✅</p>
+</li>
+<li>
+<p>完全 無需自訂 Lambda 或 EventBridge ✅</p>
+</li>
+<li>
+<p>最符合 operationally efficient 的條件</p>
+</li>
+</ul>
+<p>C. 使用 DynamoDB Console 手動備份 + S3 儲存</p>
+<ul>
+<li>
+<p>需要手動操作，無法 scale</p>
+</li>
+<li>
+<p>雖然搭配 S3 Lifecycle 可達 7 年保留</p>
+</li>
+<li>
+<p>❌ 不是「自動化」或「高效率」的營運方式</p>
+</li>
+</ul>
+<p>D. 使用 EventBridge + Lambda 自動備份到 S3</p>
+<ul>
+<li>
+<p>可以達成需求，但要你自己維護：</p>
+</li>
+<li>
+<p>雖然有效，但比起 AWS Backup 仍多出不少維運負擔 ❌</p>
+</li>
+</ul>
+<p>✅ 總結比較：</p>
+<p>✅ 正解：</p>
+<p>B. Use AWS Backup to create backup schedules and retention policies for the table.</p>
+<p>✅ 正確答案：B. Modify the launchPermission property of the AMI. Share the AMI with the MSP Partner’s AWS account only. Modify the CMK’s key policy to allow the MSP Partner’s AWS account to use the key.</p>
+<p>🧠 題目解析：</p>
+<p>這題的重點在於：</p>
+<p>AMI 是加密的，而且：</p>
+<p>使用的是 自定義的 KMS CMK（Customer Master Key）</p>
+<p>需要與 MSP Partner 的 AWS 帳戶共享</p>
+<p>強調要 最安全的方式</p>
+<p>✅ 為什麼選 B？</p>
+<ul>
+<li>
+<p>launchPermission 可用來指定哪些帳號可使用 AMI 啟動 EC2。</p>
+</li>
+<li>
+<p>但因為該 AMI 背後的 EBS Snapshot 是 使用 CMK 加密的：</p>
+</li>
+<li></li>
+<li>
+<p>這是 AWS 官方建議的做法，安全又直接。</p>
+</li>
+</ul>
+<p>❌ 其他選項為何錯？</p>
+<p>A.</p>
+<p>公開 AMI 和 snapshot？</p>
+<ul>
+<li>
+<p>❌ 風險極高！不該將加密資源公開，即使有金鑰保護。</p>
+</li>
+<li>
+<p>不符合「最安全方式」這個題目重點。</p>
+</li>
+</ul>
+<p>C.</p>
+<p>信任對方的 KMS 金鑰？</p>
+<ul>
+<li>
+<p>❌ KMS 金鑰不支援「信任另一個金鑰」的設定。</p>
+</li>
+<li>
+<p>你不能用 CMK 直接信任另一個帳號的金鑰來重加密已存在的 snapshot。</p>
+</li>
+<li>
+<p>而且複雜、易錯，不是最直接或安全的選項。</p>
+</li>
+</ul>
+<p>D.</p>
+<p>透過 S3 匯出再重建？</p>
+<ul>
+<li>
+<p>這是可行的技術方式，但：</p>
+</li>
+<li></li>
+<li>
+<p>題目說明：「最安全，最低風險方式」→ ❌ 不符合。</p>
+</li>
+</ul>
+<p>✅ 正解方式說明：</p>
+<p>使用以下命令設定共享 AMI：</p>
+<p>aws ec2 modify-image-attribute \</p>
+<p>--image-id ami-xxxxxxxx \</p>
+<p>--launch-permission "Add=[{UserId=MSP_ACCOUNT_ID}]"</p>
+<p>然後更新加密 snapshot 所使用的 KMS CMK 金鑰策略，加入 MSP 帳號：</p>
+<p>{</p>
+<p>"Sid": "Allow use of the key",</p>
+<p>"Effect": "Allow",</p>
+<p>"Principal": { "AWS": "arn:aws:iam::MSP_ACCOUNT_ID:root" },</p>
+<p>"Action": [</p>
+<p>"kms:Decrypt",</p>
+<p>"kms:DescribeKey",</p>
+<p>"kms:ReEncrypt*",</p>
+<p>"kms:GenerateDataKey*"</p>
+<p>],</p>
+<p>"Resource": "*"</p>
+<p>}</p>
+<p>✅ 總結</p>
+<p>✅ 正解：</p>
+<p>B. Modify the launchPermission property of the AMI. Share the AMI with the MSP Partner’s AWS account only. Modify the CMK’s key policy to allow the MSP Partner’s AWS account to use the key.</p>
+<p>✅ 正確答案：D. Create an Amazon EventBridge (Amazon CloudWatch Events) rule to detect any certificates that will expire within 30 days. Configure the rule to invoke an AWS Lambda function. Configure the Lambda function to send a custom alert by way of Amazon Simple Notification Service (Amazon SNS).</p>
+<p>🔍 題目解析：</p>
+<p>目標：</p>
+<p>在 SSL/TLS 憑證過期前 30 天發出通知。</p>
+<p>情境：</p>
+<ul>
+<li>
+<p>憑證是從 ACM (AWS Certificate Manager) 匯入的。</p>
+</li>
+<li>
+<p>用於 Elastic Load Balancers。</p>
+</li>
+<li>
+<p>需要 自動通知（30天前） → 符合 event-driven alerting 概念。</p>
+</li>
+</ul>
+<p>✅ 為什麼選 D？</p>
+<p>AWS Certificate Manager 本身無法自動通知憑證即將過期，但它會將這些資訊發佈到 Amazon EventBridge（以前叫 CloudWatch Events）。</p>
+<p>你可以：</p>
+<p>建立一個 EventBridge 規則來篩選出 ACM 憑證過期的事件（ACM Certificate Approaching Expiration）。</p>
+<p>觸發 AWS Lambda。</p>
+<p>Lambda 發送通知到 SNS topic。</p>
+<p>這樣可以滿足：</p>
+<ul>
+<li>
+<p>⏰ 30天前通知</p>
+</li>
+<li>
+<p>📩 自動通知 via SNS</p>
+</li>
+<li>
+<p>🔁 無需手動監控</p>
+</li>
+</ul>
+<p>❌ 錯誤選項解析：</p>
+<p>A. ❌「Add a rule in ACM」</p>
+<p>ACM 不支援自訂規則或排程通知，也不能直接 publish SNS 通知。</p>
+    </article>
+    <p class="post-meta">
+      原文：
+      <a href="https://github.com/Vincent23412/diary/blob/main/content/daily-notes/2025-06-28.md" target="_blank">GitHub</a> ·
+      <a href="https://raw.githubusercontent.com/Vincent23412/diary/main/content/daily-notes/2025-06-28.md" target="_blank">raw</a>
+    </p>
+  </main>
+
+  <footer class="container py-24">
+    <small>最後更新：2025-10-25</small>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,276 @@
+<!doctype html>
+<html lang="zh-Hant-TW">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Best Practice In Environment</title>
+  <link rel="stylesheet" href="/notes/style.css" />
+</head>
+<body>
+  <header class="container py-24">
+    <h1 class="title">Best Practice In Environment</h1>
+    <nav class="nav">
+      <a href="/notes/nodejs/index.html" class="nav-link">← 回分類</a>
+      <a href="/notes/index.html" class="nav-link">回總覽</a>
+    </nav>
+  </header>
+
+  <main class="container card">
+    <article class="post-content">
+      <h1 id="nodejs-express">Node.js / Express 生產環境效能優化完整整理</h1>
+<h2 id="1-node_env-production">✅ 1. 設定 NODE_ENV 為 production</h2>
+<ul>
+<li>
+<p><code>NODE_ENV=production</code> 會：</p>
+</li>
+<li>
+<p>快取視圖模板</p>
+</li>
+<li>快取 CSS 頁面資源</li>
+<li>減少錯誤訊息細節（更輕量）</li>
+<li>效能提升最高可達 3 倍 ✅</li>
+<li><strong>設定方式</strong>：</li>
+</ul>
+<div class="codehilite"><pre><span></span><code><span class="na">Environment</span><span class="o">=</span><span class="s">NODE_ENV=production</span>
+</code></pre></div>
+
+<ul>
+<li><strong>systemd 範例</strong>：<code>/etc/systemd/system/my-app.service</code></li>
+</ul>
+<div class="codehilite"><pre><span></span><code><span class="k">[Service]</span>
+<span class="na">Environment</span><span class="o">=</span><span class="s">NODE_ENV=production</span>
+</code></pre></div>
+
+<h2 id="2">✅ 2. 確保應用程式崩潰自動重啟</h2>
+<table>
+<thead>
+<tr>
+<th>情境</th>
+<th>解法</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Node app 崩潰</td>
+<td><strong>pm2 或 cluster 模組重啟</strong> ✅</td>
+</tr>
+<tr>
+<td>系統崩潰重啟</td>
+<td><strong>systemd</strong> 自動重啟 ✅</td>
+</tr>
+</tbody>
+</table>
+<h3 id="systemd">🎁 systemd 範例：</h3>
+<div class="codehilite"><pre><span></span><code><span class="k">[Service]</span>
+<span class="na">Restart</span><span class="o">=</span><span class="s">always</span>
+</code></pre></div>
+
+<h2 id="3-init">✅ 3. 使用流程管理器與 init 系統</h2>
+<ul>
+<li><strong>流程管理器</strong>：pm2，可 cluster、多 process、log 管理</li>
+<li><strong>init 系統</strong>：systemd，讓 server 重開機後 pm2 自動啟動</li>
+</ul>
+<h3 id="pm2-systemd">pm2 + systemd 範例：</h3>
+<div class="codehilite"><pre><span></span><code>pm2<span class="w"> </span>start<span class="w"> </span>app.js<span class="w"> </span>--name<span class="w"> </span>my-app
+pm2<span class="w"> </span>save
+pm2<span class="w"> </span>startup<span class="w"> </span>systemd
+</code></pre></div>
+
+<h2 id="4-cluster">✅ 4. 使用 Cluster 模式</h2>
+<table>
+<thead>
+<tr>
+<th>工具</th>
+<th>說明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>cluster 模組</td>
+<td>Node.js 內建多核心解法 ✅</td>
+</tr>
+<tr>
+<td>pm2 cluster</td>
+<td>一鍵 cluster，0 程式碼變動 ✅</td>
+</tr>
+</tbody>
+</table>
+<h3 id="cluster-api">cluster API 範例：</h3>
+<div class="codehilite"><pre><span></span><code><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nx">cluster</span><span class="p">.</span><span class="nx">isPrimary</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">cluster</span><span class="p">.</span><span class="nx">fork</span><span class="p">()</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">app</span><span class="p">.</span><span class="nx">listen</span><span class="p">(</span><span class="mf">3000</span><span class="p">)</span><span class="w"> </span><span class="p">}</span>
+</code></pre></div>
+
+<h3 id="pm2">pm2 範例：</h3>
+<div class="codehilite"><pre><span></span><code>pm2<span class="w"> </span>start<span class="w"> </span>app.js<span class="w"> </span>-i<span class="w"> </span>max
+</code></pre></div>
+
+<h2 id="5">✅ 5. 快取請求結果</h2>
+<table>
+<thead>
+<tr>
+<th>層級</th>
+<th>工具</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>應用層</td>
+<td>Redis ✅</td>
+</tr>
+<tr>
+<td>網路層</td>
+<td>Nginx Proxy Cache ✅</td>
+</tr>
+</tbody>
+</table>
+<h3 id="nginx-proxy-cache">Nginx Proxy Cache 範例：</h3>
+<div class="codehilite"><pre><span></span><code><span class="k">proxy_cache_path</span><span class="w"> </span><span class="s">/cache</span><span class="w"> </span><span class="s">keys_zone=my_cache:10m</span><span class="p">;</span>
+<span class="k">location</span><span class="w"> </span><span class="s">/api/</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="kn">proxy_cache</span><span class="w"> </span><span class="s">my_cache</span><span class="p">;</span>
+<span class="w">    </span><span class="kn">proxy_pass</span><span class="w"> </span><span class="s">http://app</span><span class="p">;</span>
+<span class="p">}</span>
+</code></pre></div>
+
+<h2 id="6-load-balancer">✅ 6. 使用負載平衡器 (Load Balancer)</h2>
+<table>
+<thead>
+<tr>
+<th>層級</th>
+<th>工具</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>單台多 process</td>
+<td>Nginx upstream</td>
+</tr>
+<tr>
+<td>多台 server</td>
+<td>AWS ELB, HAProxy</td>
+</tr>
+</tbody>
+</table>
+<h3 id="nginx-upstream">Nginx upstream 範例：</h3>
+<div class="codehilite"><pre><span></span><code><span class="k">upstream</span><span class="w"> </span><span class="s">backend</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="kn">server</span><span class="w"> </span><span class="n">127.0.0.1</span><span class="p">:</span><span class="mi">3001</span><span class="p">;</span>
+<span class="w">  </span><span class="kn">server</span><span class="w"> </span><span class="n">127.0.0.1</span><span class="p">:</span><span class="mi">3002</span><span class="p">;</span>
+<span class="p">}</span>
+<span class="k">location</span><span class="w"> </span><span class="s">/</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="kn">proxy_pass</span><span class="w"> </span><span class="s">http://backend</span><span class="p">;</span><span class="w"> </span><span class="p">}</span>
+</code></pre></div>
+
+<h2 id="7-reverse-proxy">✅ 7. 使用反向代理 (Reverse Proxy)</h2>
+<table>
+<thead>
+<tr>
+<th>功能</th>
+<th>反向代理貢獻</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>壓縮</td>
+<td>gzip ✅</td>
+</tr>
+<tr>
+<td>快取</td>
+<td>proxy_cache ✅</td>
+</tr>
+<tr>
+<td>SSL Offload</td>
+<td>HTTPS 由 Nginx 處理 ✅</td>
+</tr>
+<tr>
+<td>靜態檔案服務</td>
+<td>直接從 Nginx 回應 JS/CSS ✅</td>
+</tr>
+</tbody>
+</table>
+<h3 id="nginx-reverse-proxy">Nginx Reverse Proxy 範例：</h3>
+<div class="codehilite"><pre><span></span><code><span class="k">server</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="kn">gzip</span><span class="w"> </span><span class="no">on</span><span class="p">;</span>
+<span class="w">    </span><span class="kn">location</span><span class="w"> </span><span class="s">/api/</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="kn">proxy_pass</span><span class="w"> </span><span class="s">http://localhost:3000</span><span class="p">;</span><span class="w"> </span><span class="kn">proxy_cache</span><span class="w"> </span><span class="s">my_cache</span><span class="p">;</span><span class="w"> </span><span class="p">}</span>
+<span class="w">    </span><span class="kn">location</span><span class="w"> </span><span class="s">/static/</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="kn">root</span><span class="w"> </span><span class="s">/var/www/static</span><span class="p">;</span><span class="w"> </span><span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div>
+
+<h2 id="8-redis-vs-nginx-cache">✅ 8. Redis vs Nginx Cache 差異</h2>
+<table>
+<thead>
+<tr>
+<th>特點</th>
+<th>Redis</th>
+<th>Nginx Cache</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>運作層級</td>
+<td>應用層</td>
+<td>網路層 ✅</td>
+</tr>
+<tr>
+<td>粒度</td>
+<td>單筆資料快取</td>
+<td>整頁快取 ✅</td>
+</tr>
+<tr>
+<td>個人化支援</td>
+<td>✅ 適合個人化資料</td>
+<td>❌ 不適合個人化頁面</td>
+</tr>
+<tr>
+<td>常見用途</td>
+<td>排行榜、API 查詢快取</td>
+<td>熱門首頁、靜態頁面快取 ✅</td>
+</tr>
+</tbody>
+</table>
+<h2 id="9-elasticache-vs-ec2-redis">✅ 9. ElastiCache vs EC2 自架 Redis</h2>
+<table>
+<thead>
+<tr>
+<th>比較</th>
+<th>ElastiCache</th>
+<th>EC2 Redis</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>維運</td>
+<td>AWS 託管 ✅</td>
+<td>自己裝、維運 ❌</td>
+</tr>
+<tr>
+<td>HA</td>
+<td>Multi-AZ、自動 failover ✅</td>
+<td>自己設計</td>
+</tr>
+<tr>
+<td>擴展性</td>
+<td>Redis Cluster ✅</td>
+<td>自己搭 cluster</td>
+</tr>
+<tr>
+<td>用法</td>
+<td>跟本機 Redis 完全一樣 ✅</td>
+<td>本機 Redis 用法</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<p>📌 <strong>完整最佳實踐：</strong></p>
+<blockquote>
+<p>Node.js 應用：pm2 cluster ➡️ systemd 託管 ➡️ Nginx Proxy (壓縮 + 快取 + 分流) ➡️ Redis 輔助應用層快取 ➡️ AWS ELB 或 HAProxy 分流多台實例 ✅</p>
+</blockquote>
+    </article>
+    <p class="post-meta">
+      原文：
+      <a href="https://github.com/Vincent23412/diary/blob/main/content/nodejs/best_practice_in_environment.md" target="_blank">GitHub</a> ·
+      <a href="https://raw.githubusercontent.com/Vincent23412/diary/main/content/nodejs/best_practice_in_environment.md" target="_blank">raw</a>
+    </p>
+  </main>
+
+  <footer class="container py-24">
+    <small>最後更新：2025-10-25</small>
+  </footer>
+</body>
+</html>

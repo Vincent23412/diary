@@ -1,0 +1,214 @@
+<!doctype html>
+<html lang="zh-Hant-TW">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Event Loop2</title>
+  <link rel="stylesheet" href="/notes/style.css" />
+</head>
+<body>
+  <header class="container py-24">
+    <h1 class="title">Event Loop2</h1>
+    <nav class="nav">
+      <a href="/notes/nodejs/index.html" class="nav-link">← 回分類</a>
+      <a href="/notes/index.html" class="nav-link">回總覽</a>
+    </nav>
+  </header>
+
+  <main class="container card">
+    <article class="post-content">
+      <h1 id="nodejs">🧠 Node.js 事件迴圈筆記總整理</h1>
+<h2 id="_1">📍 基本概念</h2>
+<p>Node.js 的事件迴圈（Event Loop）是非同步架構的核心，負責協調各種非同步任務的執行順序。每一輪事件迴圈稱為一個 <strong>tick</strong>，每個 tick 包含多個階段（phases）。</p>
+<hr />
+<h2 id="_2">📊 事件迴圈階段（簡化版）</h2>
+<table>
+<thead>
+<tr>
+<th>階段名稱</th>
+<th>說明與用途</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>timers</strong></td>
+<td>執行到期的 <code>setTimeout()</code> 和 <code>setInterval()</code> 回呼</td>
+</tr>
+<tr>
+<td><strong>pending</strong></td>
+<td>某些錯誤延遲回呼（很少使用）</td>
+</tr>
+<tr>
+<td><strong>idle/prepare</strong></td>
+<td>Node.js 內部用</td>
+</tr>
+<tr>
+<td><strong>poll</strong></td>
+<td>等待 I/O 事件、執行 I/O 回呼（如 <code>fs.readFile</code>）</td>
+</tr>
+<tr>
+<td><strong>check</strong></td>
+<td>執行 <code>setImmediate()</code></td>
+</tr>
+<tr>
+<td><strong>close</strong></td>
+<td>執行 <code>close</code> 事件回呼（如 socket 被銷毀）</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="_3">🧵 特殊機制（非屬於事件迴圈階段）</h2>
+<table>
+<thead>
+<tr>
+<th>類型</th>
+<th>執行時機說明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>process.nextTick()</code></td>
+<td>在 <strong>當前事件循環階段完成前</strong> 執行（優先）</td>
+</tr>
+<tr>
+<td><strong>Microtasks</strong>（如 <code>Promise.then()</code>、<code>queueMicrotask()</code>）</td>
+<td>在事件循環階段結束後執行，但比 macrotask 更早</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="_4">🔼 任務優先順序（從快到慢）</h2>
+<ol>
+<li><code>process.nextTick()</code> ✅（最高優先）</li>
+<li><code>Promise.then()</code> / <code>queueMicrotask()</code>（microtask queue）</li>
+<li><code>setTimeout(fn, 0)</code>（下一輪 timers 階段）</li>
+<li><code>setImmediate()</code>（下一輪 check 階段）</li>
+</ol>
+<hr />
+<h2 id="_5">🔧 比較總表</h2>
+<table>
+<thead>
+<tr>
+<th>特性</th>
+<th><code>process.nextTick()</code></th>
+<th><code>Promise.then()</code></th>
+<th><code>setTimeout()</code></th>
+<th><code>setImmediate()</code></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>是否 microtask</td>
+<td>❌（特殊 queue）</td>
+<td>✅ microtask</td>
+<td>❌ macrotask</td>
+<td>❌ macrotask</td>
+</tr>
+<tr>
+<td>執行時機</td>
+<td>當前 call stack 清空後</td>
+<td>microtask 隊列</td>
+<td>下一輪事件循環的 timers 階段</td>
+<td>下一輪事件循環的 check 階段</td>
+</tr>
+<tr>
+<td>穩定性</td>
+<td>會造成 starvation，請小心使用</td>
+<td>穩定</td>
+<td>容易延遲</td>
+<td>✅ I/O 後推薦使用</td>
+</tr>
+<tr>
+<td>適用場景</td>
+<td>錯誤回傳、保證 callback 非同步</td>
+<td>非同步流程控制</td>
+<td>一般延遲</td>
+<td>I/O 回呼後的後續邏輯</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="_6">🧪 例子解析</h2>
+<h3 id="1-nexttick-setimmediate">1️⃣ <code>nextTick</code> 與 <code>setImmediate</code> 比較：</h3>
+<div class="codehilite"><pre><span></span><code><span class="nx">process</span><span class="p">.</span><span class="nx">nextTick</span><span class="p">(()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s2">&quot;nextTick&quot;</span><span class="p">));</span>
+<span class="nx">setImmediate</span><span class="p">(()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s2">&quot;setImmediate&quot;</span><span class="p">));</span>
+</code></pre></div>
+
+<p>➡️ 輸出順序：</p>
+<div class="codehilite"><pre><span></span><code>nextTick
+setImmediate
+</code></pre></div>
+
+<hr />
+<h3 id="2">2️⃣ 建構函數中觸發事件（要延遲執行）</h3>
+<div class="codehilite"><pre><span></span><code><span class="kd">class</span><span class="w"> </span><span class="nx">MyEmitter</span><span class="w"> </span><span class="k">extends</span><span class="w"> </span><span class="nx">EventEmitter</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="kr">constructor</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">super</span><span class="p">();</span>
+<span class="w">    </span><span class="nx">process</span><span class="p">.</span><span class="nx">nextTick</span><span class="p">(()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="k">this</span><span class="p">.</span><span class="nx">emit</span><span class="p">(</span><span class="s1">&#39;ready&#39;</span><span class="p">);</span>
+<span class="w">    </span><span class="p">});</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div>
+
+<p>➡️ 確保使用者 <code>.on('ready')</code> 有時間註冊</p>
+<hr />
+<h3 id="3-io-setimmediate">3️⃣ I/O 中使用 <code>setImmediate</code></h3>
+<div class="codehilite"><pre><span></span><code><span class="nx">fs</span><span class="p">.</span><span class="nx">readFile</span><span class="p">(</span><span class="nx">__filename</span><span class="p">,</span><span class="w"> </span><span class="p">()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="nx">setImmediate</span><span class="p">(()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s2">&quot;immediate&quot;</span><span class="p">));</span><span class="w">  </span><span class="c1">// ✅ 穩定</span>
+<span class="w">  </span><span class="nx">setTimeout</span><span class="p">(()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s2">&quot;timeout&quot;</span><span class="p">),</span><span class="w"> </span><span class="mf">0</span><span class="p">);</span><span class="w">   </span><span class="c1">// ❌ 時機可能延遲</span>
+<span class="p">});</span>
+</code></pre></div>
+
+<p>➡️ <code>setImmediate</code> 比 <code>setTimeout(..., 0)</code> 更穩定地在 I/O 後執行</p>
+<hr />
+<h2 id="starvation">⚠️ 潛在問題：Starvation（飢餓）</h2>
+<div class="codehilite"><pre><span></span><code><span class="kd">function</span><span class="w"> </span><span class="nx">loop</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="nx">process</span><span class="p">.</span><span class="nx">nextTick</span><span class="p">(</span><span class="nx">loop</span><span class="p">);</span><span class="w">  </span><span class="c1">// ❌ 無限卡在 nextTick queue，其他任務無法執行</span>
+<span class="p">}</span>
+<span class="nx">loop</span><span class="p">();</span>
+</code></pre></div>
+
+<p>➡️ 永遠無法進入下一階段 → ❌ I/O 無法觸發，效能被鎖死</p>
+<hr />
+<h2 id="_7">✅ 最佳實務總結</h2>
+<table>
+<thead>
+<tr>
+<th>你要做什麼？</th>
+<th>使用哪個？</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>確保 callback 非同步、回傳錯誤前給使用者機會處理</td>
+<td><code>process.nextTick()</code></td>
+</tr>
+<tr>
+<td>在 async 流程中排 microtask</td>
+<td><code>Promise.then()</code> / <code>await</code></td>
+</tr>
+<tr>
+<td>處理 I/O 完後的任務</td>
+<td><code>setImmediate()</code></td>
+</tr>
+<tr>
+<td>做定時排程</td>
+<td><code>setTimeout()</code> 或 <code>setInterval()</code></td>
+</tr>
+</tbody>
+</table>
+<hr />
+    </article>
+    <p class="post-meta">
+      原文：
+      <a href="https://github.com/Vincent23412/diary/blob/main/content/nodejs/event_loop2.md" target="_blank">GitHub</a> ·
+      <a href="https://raw.githubusercontent.com/Vincent23412/diary/main/content/nodejs/event_loop2.md" target="_blank">raw</a>
+    </p>
+  </main>
+
+  <footer class="container py-24">
+    <small>最後更新：2025-10-25</small>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="zh-Hant-TW">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>2025-05-30</title>
+  <link rel="stylesheet" href="/notes/style.css" />
+</head>
+<body>
+  <header class="container py-24">
+    <h1 class="title">2025-05-30</h1>
+    <nav class="nav">
+      <a href="/notes/daily-notes/index.html" class="nav-link">← 回分類</a>
+      <a href="/notes/index.html" class="nav-link">回總覽</a>
+    </nav>
+  </header>
+
+  <main class="container card">
+    <article class="post-content">
+      <h1 id="530">5/30</h1>
+<h1 id="scp">📦 SCP 與解壓縮筆記整理</h1>
+<h2 id="_1">📁 壓縮與解壓縮指令</h2>
+<h3 id="targz"><code>.tar.gz</code> 壓縮：</h3>
+<p>將資料夾壓縮成 <code>.tar.gz</code> 檔案：</p>
+<p>tar -czvf output.tar.gz your_folder_name</p>
+<ul>
+<li><code>-c</code>：建立壓縮檔  </li>
+<li><code>-z</code>：透過 gzip 壓縮  </li>
+<li><code>-v</code>：顯示過程資訊（可省略）  </li>
+<li><code>-f</code>：指定壓縮檔名稱  </li>
+</ul>
+<hr />
+<h3 id="targz_1"><code>.tar.gz</code> 解壓縮：</h3>
+<p>tar -xzvf file.tar.gz</p>
+<hr />
+<h2 id="scp_1">📤 SCP 傳輸指令</h2>
+<h3 id="_2">✅ 本機上傳到遠端：</h3>
+<p>scp -i your-key.pem /path/to/local/file ec2-user@<IP>:/path/to/remote/dir</p>
+<ul>
+<li><code>-i</code>：指定 pem 憑證檔  </li>
+<li><code>file</code>：要上傳的本地檔案  </li>
+<li><code>ec2-user@&lt;IP&gt;</code>：遠端使用者與 IP  </li>
+<li><code>:/path/...</code>：遠端目的地路徑  </li>
+</ul>
+<hr />
+<h3 id="_3">✅ 遠端下載到本機：</h3>
+<p>scp -i your-key.pem ec2-user@<IP>:/path/to/remote/file /path/to/local/dir</p>
+<hr />
+<h3 id="_4">✅ 遞迴傳整個資料夾：</h3>
+<p>scp -i your-key.pem -r ec2-user@<IP>:/remote/folder /local/folder</p>
+<ul>
+<li><code>-r</code>：遞迴傳輸整個資料夾</li>
+</ul>
+<hr />
+<h2 id="_5">⚠️ 常見錯誤與解法</h2>
+<p>🔒 Permissions 0644 for 'your-key.pem' are too open</p>
+<p>chmod 400 your-key.pem</p>
+<p>原因：<code>.pem</code> 檔權限過開，需限制為只有自己可讀。</p>
+<hr />
+<p>❌ No such file or directory</p>
+<p>原因：檔案或路徑名稱打錯，請確認路徑是否存在。</p>
+<hr />
+<p>❗ SCP 下載時本地資料夾不存在</p>
+<p>mkdir -p /path/to/local/dir</p>
+<hr />
+<h2 id="_6">🧠 備註</h2>
+<ul>
+<li><code>.tar.gz</code> 是 tar 與 gzip 結合的格式，常用於 Linux 資料打包  </li>
+<li>SCP 基於 SSH，適合快速傳輸安全檔案，不適合大量資料（可考慮 rsync）</li>
+</ul>
+    </article>
+    <p class="post-meta">
+      原文：
+      <a href="https://github.com/Vincent23412/diary/blob/main/content/daily-notes/2025-05-30.md" target="_blank">GitHub</a> ·
+      <a href="https://raw.githubusercontent.com/Vincent23412/diary/main/content/daily-notes/2025-05-30.md" target="_blank">raw</a>
+    </p>
+  </main>
+
+  <footer class="container py-24">
+    <small>最後更新：2025-10-25</small>
+  </footer>
+</body>
+</html>
