@@ -1,0 +1,229 @@
+<!doctype html>
+<html lang="zh-Hant-TW">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>2025-06-30</title>
+  <link rel="stylesheet" href="/notes/style.css" />
+</head>
+<body>
+  <header class="container py-24">
+    <h1 class="title">2025-06-30</h1>
+    <nav class="nav">
+      <a href="/notes/daily-notes/index.html" class="nav-link">← 回分類</a>
+      <a href="/notes/index.html" class="nav-link">回總覽</a>
+    </nav>
+  </header>
+
+  <main class="container card">
+    <article class="post-content">
+      <p>這題目考的是如何保護 S3 資源不被直接存取，同時又要能透過 CloudFront 發佈內容。</p>
+<p>❓ 題目解析</p>
+<ul>
+<li>
+<p>使用者上傳檔案到 S3。</p>
+</li>
+<li>
+<p>所有檔案要經由 CloudFront 提供。</p>
+</li>
+<li>
+<p>不允許使用者透過 S3 原始 URL 直接存取。</p>
+</li>
+</ul>
+<p>✅ 正確答案：</p>
+<p>D. Create an origin access identity (OAI). Assign the OAI to the CloudFront distribution. Configure the S3 bucket permissions so that only the OAI has read permission.</p>
+<p>🔍 詳解</p>
+<p>✅ 為什麼選 D？</p>
+<ul>
+<li>
+<p>OAI（Origin Access Identity） 是一種特殊的身份，讓 CloudFront 可以存取 S3，但其他人無法直接透過 S3 URL 存取。</p>
+</li>
+<li>
+<p>當你設定了 OAI：</p>
+</li>
+<li></li>
+<li>
+<p>這樣達成「只能透過 CloudFront 看檔案」的需求。</p>
+</li>
+</ul>
+<p>❌ 為什麼其他選項錯？</p>
+<ul>
+<li>
+<p>A. 「寫個別的 S3 存取政策給 CloudFront」這不是最佳作法，CloudFront 本身沒有 IAM 身份可以直接給權限。</p>
+</li>
+<li>
+<p>B. IAM 使用者無法指派給 CloudFront 作為授權來源，也無法限制 S3 URL 被讀取。</p>
+</li>
+<li>
+<p>C. S3 bucket policy 並不支援直接把 CloudFront Distribution ID 當成 Principal，這不是合法的 IAM 寫法。</p>
+</li>
+</ul>
+<p>📝 延伸補充（若你使用 CloudFront OAC）</p>
+<p>AWS 推出新的方式叫做 OAC（Origin Access Control），可以替代 OAI，但 OAI 仍然是考題中常見選項。</p>
+<p>這題問的是：網站提供下載報告的功能，要全球擴展、高效能、低成本，且要盡量少維運基礎設施資源（infrastructure）。</p>
+<p>✅ 正確答案：</p>
+<p>A. Amazon CloudFront and Amazon S3</p>
+<p>🔍 題目分析關鍵點：</p>
+<p>❌ 錯誤選項解析：</p>
+<ul>
+<li>
+<p>B. AWS Lambda and Amazon DynamoDB
+適合處理動態請求、事件觸發，但這題是靜態報告檔案下載，非最佳選擇。</p>
+</li>
+<li>
+<p>C. Application Load Balancer with Amazon EC2 Auto Scaling
+雖然能擴展，但會增加維運成本（要管理 EC2 + 負載平衡器），不是最 cost-effective。</p>
+</li>
+<li>
+<p>D. Amazon Route 53 with internal Application Load Balancers
+Internal Load Balancer 無法給公開使用者使用；Route 53 只是 DNS，無法提供實際內容。</p>
+</li>
+</ul>
+<p>✅ 小結</p>
+<p>這樣組合最符合「全球擴展 + 高效能 + 最小維運 + 成本效益」的要求。</p>
+<p>題目解析：</p>
+<p>公司需求如下：</p>
+<p>升級 Oracle 至最新版本</p>
+<p>設立災難復原（DR）機制，跨區更佳</p>
+<p>維持對底層 OS 的存取權限（通常代表要能自訂資料庫設定）</p>
+<p>盡量降低日常營運和 DR 的操作負擔</p>
+<p>✅ 正確答案：</p>
+<p>C. Migrate the Oracle database to Amazon RDS Custom for Oracle. Create a read replica for the database in another AWS Region.</p>
+<p>原因解析：</p>
+<p>❌ 錯誤選項分析：</p>
+<ul>
+<li>
+<p>A. EC2 + replication</p>
+</li>
+<li></li>
+<li>
+<p>B. RDS for Oracle + Cross-Region Backup</p>
+</li>
+<li></li>
+<li>
+<p>D. RDS for Oracle + Multi-AZ standby</p>
+</li>
+<li></li>
+</ul>
+<p>🧠 延伸補充：</p>
+<ul>
+<li>
+<p>RDS for Oracle ➤ 管理簡單，但限制較多（無法存取 OS、版本受限）</p>
+</li>
+<li>
+<p>RDS Custom for Oracle ➤ 管理與彈性之間取得平衡，適合需要較細節控制（如自訂 patch、agent）的使用者</p>
+</li>
+<li>
+<p>EC2 + Oracle ➤ 彈性最高，但管理成本與維運負擔最大</p>
+</li>
+</ul>
+<p>✅ 結論：</p>
+<p>若你需要「自訂版本 + 存取作業系統 + 跨區備援 + 降低日常管理成本」，選擇 RDS Custom for Oracle + Cross-region read replica（選項 C）最合適。</p>
+<p>題目解析：</p>
+<p>公司需求如下：</p>
+<ul>
+<li>
+<p>搬移應用程式到 Serverless 架構</p>
+</li>
+<li>
+<p>分析 既有與新增的資料</p>
+</li>
+<li>
+<p>資料儲存在 Amazon S3</p>
+</li>
+<li>
+<p>資料需 加密</p>
+</li>
+<li>
+<p>必須 跨區複製（Cross-Region Replication, CRR）</p>
+</li>
+<li>
+<p>要求 最低操作負擔（Least operational overhead）</p>
+</li>
+</ul>
+<p>✅ 正確答案：</p>
+<p>A. Create a new S3 bucket. Load the data into the new S3 bucket. Use S3 Cross-Region Replication (CRR) to replicate encrypted objects to an S3 bucket in another Region. Use server-side encryption with AWS KMS multi-Region keys (SSE-KMS). Use Amazon Athena to query the data.</p>
+<p>原因解析：</p>
+<p>❌ 其他選項為何不行：</p>
+<p>B. 使用 Amazon RDS 查詢資料 ❌</p>
+<ul>
+<li>
+<p>RDS 不是 serverless。</p>
+</li>
+<li>
+<p>RDS 不能直接查詢 S3 上的資料，還要先匯入 ➜ 操作負擔高</p>
+</li>
+</ul>
+<p>C. 使用 SSE-S3 加密 ❌</p>
+<ul>
+<li>
+<p>SSE-S3 不支援 CRR（AWS 限制）</p>
+</li>
+<li>
+<p>CRR 複製加密資料時，若使用 SSE-S3，無法跨區複製</p>
+</li>
+</ul>
+<p>D. 同上，也使用了 RDS + SSE-S3 ❌</p>
+<ul>
+<li>一樣面臨 CRR 不支援 SSE-S3、RDS 非 serverless 的兩個問題</li>
+</ul>
+<p>✅ 補充知識：</p>
+<ul>
+<li>
+<p>SSE-KMS + Multi-Region Keys (MRK)：支援加密資料的跨區複製，是設計來搭配 CRR 使用的。</p>
+</li>
+<li>
+<p>Athena：直接查詢儲存在 S3 的資料，支援多種格式（CSV、Parquet、JSON 等），不需建資料庫。</p>
+</li>
+<li>
+<p>S3 CRR：支援自動、持續地將資料從一個 bucket 複製到另一個區域的 bucket。</p>
+</li>
+</ul>
+<p>✅ 結論：</p>
+<p>若要達成 serverless 查詢 + 加密 + 跨區複製 + 最少管理負擔，</p>
+<p>正確解答為：A</p>
+<p>這題的關鍵在於以下幾點需求：</p>
+<ul>
+<li>
+<p>連線必須是私有的（private）</p>
+</li>
+<li>
+<p>只允許連線到指定服務（restricted to the target service）</p>
+</li>
+<li>
+<p>只能由公司 VPC 主動發起（initiated only from the company’s VPC）</p>
+</li>
+</ul>
+<p>✅ 正確答案是：</p>
+<p>D. Ask the provider to create a VPC endpoint for the target service. Use AWS PrivateLink to connect to the target service.</p>
+<p>📘 解題解析：</p>
+<p>為什麼選 D？</p>
+<ul>
+<li>
+<p>AWS PrivateLink 是專門設計來提供 私有、點對點、僅針對特定服務 的連線方式。</p>
+</li>
+<li>
+<p>連線是透過 Interface VPC Endpoint 建立，會在你的 VPC 中建立一個 ENI (彈性網路介面)。</p>
+</li>
+<li>
+<p>公司端主動發起連線，提供方被動接收。</p>
+</li>
+<li>
+<p>私有流量僅限該服務，不會開放整個 VPC。</p>
+</li>
+</ul>
+<p>❌ 其他選項錯在哪：</p>
+<p>A. VPC Peering ❌</p>
+    </article>
+    <p class="post-meta">
+      原文：
+      <a href="https://github.com/Vincent23412/diary/blob/main/content/daily-notes/2025-06-30.md" target="_blank">GitHub</a> ·
+      <a href="https://raw.githubusercontent.com/Vincent23412/diary/main/content/daily-notes/2025-06-30.md" target="_blank">raw</a>
+    </p>
+  </main>
+
+  <footer class="container py-24">
+    <small>最後更新：2025-10-25</small>
+  </footer>
+</body>
+</html>

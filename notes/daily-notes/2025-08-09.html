@@ -1,0 +1,231 @@
+<!doctype html>
+<html lang="zh-Hant-TW">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>2025-08-09</title>
+  <link rel="stylesheet" href="/notes/style.css" />
+</head>
+<body>
+  <header class="container py-24">
+    <h1 class="title">2025-08-09</h1>
+    <nav class="nav">
+      <a href="/notes/daily-notes/index.html" class="nav-link">← 回分類</a>
+      <a href="/notes/index.html" class="nav-link">回總覽</a>
+    </nav>
+  </header>
+
+  <main class="container card">
+    <article class="post-content">
+      <h2 id="nested-class">巢狀類別（Nested Class）</h2>
+<p>巢狀類別指宣告在另一個類別內的類別。</p>
+<h3 id="1-static-nested-class">1. 靜態巢狀類別（Static Nested Class）</h3>
+<ul>
+<li>
+<p>定義：使用 static 修飾的巢狀類別。</p>
+</li>
+<li>
+<p>位置：定義在外部類別的類別本體中，但用 static 標記。</p>
+</li>
+<li>
+<p>存取範圍：</p>
+</li>
+<li>
+<p>建立方式：Outer.StaticNestedClass obj = new Outer.StaticNestedClass();</p>
+</li>
+<li>
+<p>特性：</p>
+</li>
+</ul>
+<h3 id="2-inner-class">2. 非靜態巢狀類別（Inner Class）</h3>
+<p>非靜態的巢狀類別，會隱式持有外部類別實例的引用，因此可以直接存取外部類別的實例成員。</p>
+<h3 id="21-member-inner-class">2.1 成員內部類別（Member Inner Class）</h3>
+<ul>
+<li>
+<p>定義：定義在外部類別本體中，但沒有 static 修飾。</p>
+</li>
+<li>
+<p>位置：外部類別內部（方法之外）。</p>
+</li>
+<li>
+<p>存取範圍：</p>
+</li>
+<li>
+<p>建立方式：</p>
+</li>
+</ul>
+<h3 id="22-local-class">2.2 本地類別（Local Class）</h3>
+<ul>
+<li>
+<p>定義：宣告在方法、建構子、或區塊內的類別。</p>
+</li>
+<li>
+<p>位置：外部類別的方法或區塊內。</p>
+</li>
+<li>
+<p>存取範圍：</p>
+</li>
+<li>
+<p>特性：</p>
+</li>
+</ul>
+<h3 id="23-anonymous-class">2.3 匿名類別（Anonymous Class）</h3>
+<ul>
+<li>
+<p>定義：沒有名字的類別，同時宣告與建立實例。</p>
+</li>
+<li>
+<p>位置：通常用在建立介面或抽象類別實例時，直接寫 {...}。</p>
+</li>
+<li>
+<p>存取範圍：</p>
+</li>
+<li>
+<p>特性：</p>
+</li>
+</ul>
+<h2 id="_1">對照表</h2>
+<h2 id="_2">📌 範例</h2>
+<p>public class Outer {</p>
+<div class="codehilite"><pre><span></span><code><span class="n">private</span><span class="w"> </span><span class="n">String</span><span class="w"> </span><span class="n">outerField</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ss">&quot;Outer Field&quot;</span><span class="p">;</span><span class="w"> </span><span class="o">//</span><span class="w"> </span><span class="n">封閉類別成員</span>
+<span class="k">static</span><span class="w"> </span><span class="n">String</span><span class="w"> </span><span class="n">staticField</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ss">&quot;Static Field&quot;</span><span class="p">;</span>
+
+<span class="o">//</span><span class="w"> </span><span class="n">成員內部類別</span><span class="err">（</span><span class="k">Member</span><span class="w"> </span><span class="k">Inner</span><span class="w"> </span><span class="k">Class</span><span class="err">）</span><span class="w"> </span><span class="err">←</span><span class="w"> </span><span class="n">一般內部類別</span>
+<span class="k">class</span><span class="w"> </span><span class="n">MemberInnerClass</span><span class="w"> </span><span class="err">{</span>
+<span class="w">    </span><span class="n">void</span><span class="w"> </span><span class="n">printFromMemberInner</span><span class="p">()</span><span class="w"> </span><span class="err">{</span>
+<span class="w">        </span><span class="o">//</span><span class="w"> </span><span class="n">可以直接存取封閉類別的成員</span>
+<span class="w">        </span><span class="k">System</span><span class="p">.</span><span class="k">out</span><span class="p">.</span><span class="n">println</span><span class="p">(</span><span class="ss">&quot;MemberInnerClass -&gt; outerField: &quot;</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">outerField</span><span class="p">);</span>
+<span class="w">        </span><span class="k">System</span><span class="p">.</span><span class="k">out</span><span class="p">.</span><span class="n">println</span><span class="p">(</span><span class="ss">&quot;MemberInnerClass -&gt; staticField: &quot;</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">staticField</span><span class="p">);</span>
+<span class="w">    </span><span class="err">}</span>
+<span class="err">}</span>
+
+<span class="o">//</span><span class="w"> </span><span class="n">用來示範匿名類別</span><span class="err">「</span><span class="n">實作介面</span><span class="err">」</span>
+<span class="n">interface</span><span class="w"> </span><span class="n">Greeter</span><span class="w"> </span><span class="err">{</span>
+<span class="w">    </span><span class="n">void</span><span class="w"> </span><span class="n">greet</span><span class="p">(</span><span class="n">String</span><span class="w"> </span><span class="n">name</span><span class="p">);</span>
+<span class="err">}</span>
+
+<span class="n">void</span><span class="w"> </span><span class="n">outerMethod</span><span class="p">(</span><span class="n">String</span><span class="w"> </span><span class="n">param</span><span class="p">)</span><span class="w"> </span><span class="err">{</span><span class="w"> </span><span class="o">//</span><span class="w"> </span><span class="err">←</span><span class="w"> </span><span class="n">封閉方法</span>
+<span class="w">    </span><span class="nc">int</span><span class="w"> </span><span class="n">localVar</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">42</span><span class="p">;</span><span class="w"> </span><span class="o">//</span><span class="w"> </span><span class="n">effectively</span><span class="w"> </span><span class="n">final</span>
+
+<span class="w">    </span><span class="o">//</span><span class="w"> </span><span class="n">本地類別</span><span class="err">（</span><span class="k">Local</span><span class="w"> </span><span class="k">Class</span><span class="err">）</span>
+<span class="w">    </span><span class="k">class</span><span class="w"> </span><span class="n">LocalClass</span><span class="w"> </span><span class="err">{</span>
+<span class="w">        </span><span class="n">void</span><span class="w"> </span><span class="n">printAll</span><span class="p">()</span><span class="w"> </span><span class="err">{</span>
+<span class="w">            </span><span class="o">//</span><span class="w"> </span><span class="n">存取封閉類別成員</span>
+<span class="w">            </span><span class="k">System</span><span class="p">.</span><span class="k">out</span><span class="p">.</span><span class="n">println</span><span class="p">(</span><span class="ss">&quot;LocalClass -&gt; outerField: &quot;</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">outerField</span><span class="p">);</span>
+<span class="w">            </span><span class="k">System</span><span class="p">.</span><span class="k">out</span><span class="p">.</span><span class="n">println</span><span class="p">(</span><span class="ss">&quot;LocalClass -&gt; staticField: &quot;</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">staticField</span><span class="p">);</span>
+
+<span class="w">            </span><span class="o">//</span><span class="w"> </span><span class="n">存取封閉方法變數與參數</span>
+<span class="w">            </span><span class="k">System</span><span class="p">.</span><span class="k">out</span><span class="p">.</span><span class="n">println</span><span class="p">(</span><span class="ss">&quot;LocalClass -&gt; localVar: &quot;</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">localVar</span><span class="p">);</span>
+<span class="w">            </span><span class="k">System</span><span class="p">.</span><span class="k">out</span><span class="p">.</span><span class="n">println</span><span class="p">(</span><span class="ss">&quot;LocalClass -&gt; param: &quot;</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">param</span><span class="p">);</span>
+<span class="w">        </span><span class="err">}</span>
+<span class="w">    </span><span class="err">}</span>
+
+<span class="w">    </span><span class="o">//</span><span class="w"> </span><span class="n">使用本地類別</span>
+<span class="w">    </span><span class="n">LocalClass</span><span class="w"> </span><span class="n">lc</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">LocalClass</span><span class="p">();</span>
+<span class="w">    </span><span class="n">lc</span><span class="p">.</span><span class="n">printAll</span><span class="p">();</span>
+<span class="err">}</span>
+
+<span class="k">public</span><span class="w"> </span><span class="k">static</span><span class="w"> </span><span class="n">void</span><span class="w"> </span><span class="n">main</span><span class="p">(</span><span class="n">String</span><span class="err">[]</span><span class="w"> </span><span class="n">args</span><span class="p">)</span><span class="w"> </span><span class="err">{</span>
+<span class="w">    </span><span class="k">Outer</span><span class="w"> </span><span class="k">outer</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="k">Outer</span><span class="p">();</span>
+
+<span class="w">    </span><span class="o">//</span><span class="w"> </span><span class="n">使用成員內部類別</span><span class="err">（</span><span class="n">必須透過外部類別實例建立</span><span class="err">）</span>
+<span class="w">    </span><span class="k">Outer</span><span class="p">.</span><span class="n">MemberInnerClass</span><span class="w"> </span><span class="n">memberInner</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">outer</span><span class="p">.</span><span class="k">new</span><span class="w"> </span><span class="n">MemberInnerClass</span><span class="p">();</span>
+<span class="w">    </span><span class="n">memberInner</span><span class="p">.</span><span class="n">printFromMemberInner</span><span class="p">();</span>
+
+<span class="w">    </span><span class="k">System</span><span class="p">.</span><span class="k">out</span><span class="p">.</span><span class="n">println</span><span class="p">();</span>
+
+<span class="w">    </span><span class="o">//</span><span class="w"> </span><span class="n">呼叫包含本地類別的外部方法</span>
+<span class="w">    </span><span class="k">outer</span><span class="p">.</span><span class="n">outerMethod</span><span class="p">(</span><span class="ss">&quot;Method Parameter&quot;</span><span class="p">);</span>
+
+<span class="w">    </span><span class="k">System</span><span class="p">.</span><span class="k">out</span><span class="p">.</span><span class="n">println</span><span class="p">();</span>
+
+<span class="w">    </span><span class="o">//</span><span class="w"> </span><span class="o">=====</span><span class="w"> </span><span class="n">匿名類別</span><span class="w"> </span><span class="mi">1</span><span class="err">：</span><span class="n">實作介面</span><span class="w"> </span><span class="o">=====</span>
+<span class="w">    </span><span class="o">//</span><span class="w"> </span><span class="n">在</span><span class="w"> </span><span class="k">static</span><span class="w"> </span><span class="n">main</span><span class="w"> </span><span class="n">中</span><span class="err">，</span><span class="n">若要取用</span><span class="w"> </span><span class="k">outer</span><span class="w"> </span><span class="n">的實例成員</span><span class="err">，</span><span class="n">需透過變數</span><span class="w"> </span><span class="k">outer</span><span class="err">（</span><span class="n">effectively</span><span class="w"> </span><span class="n">final</span><span class="err">）</span>
+<span class="w">    </span><span class="k">Outer</span><span class="p">.</span><span class="n">Greeter</span><span class="w"> </span><span class="n">greeter</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="k">Outer</span><span class="p">.</span><span class="n">Greeter</span><span class="p">()</span><span class="w"> </span><span class="err">{</span>
+<span class="w">        </span><span class="nv">@Override</span>
+<span class="w">        </span><span class="k">public</span><span class="w"> </span><span class="n">void</span><span class="w"> </span><span class="n">greet</span><span class="p">(</span><span class="n">String</span><span class="w"> </span><span class="n">name</span><span class="p">)</span><span class="w"> </span><span class="err">{</span>
+<span class="w">            </span><span class="k">System</span><span class="p">.</span><span class="k">out</span><span class="p">.</span><span class="n">println</span><span class="p">(</span><span class="ss">&quot;Greeter (anonymous) -&gt; staticField: &quot;</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="k">Outer</span><span class="p">.</span><span class="n">staticField</span><span class="p">);</span>
+<span class="w">            </span><span class="k">System</span><span class="p">.</span><span class="k">out</span><span class="p">.</span><span class="n">println</span><span class="p">(</span><span class="ss">&quot;Greeter (anonymous) -&gt; outerField via instance: &quot;</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="k">outer</span><span class="p">.</span><span class="n">outerField</span><span class="p">);</span>
+<span class="w">            </span><span class="k">System</span><span class="p">.</span><span class="k">out</span><span class="p">.</span><span class="n">println</span><span class="p">(</span><span class="ss">&quot;Hello, &quot;</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">name</span><span class="p">);</span>
+<span class="w">        </span><span class="err">}</span>
+<span class="w">    </span><span class="err">}</span><span class="p">;</span>
+<span class="w">    </span><span class="n">greeter</span><span class="p">.</span><span class="n">greet</span><span class="p">(</span><span class="ss">&quot;Alice&quot;</span><span class="p">);</span>
+
+<span class="w">    </span><span class="k">System</span><span class="p">.</span><span class="k">out</span><span class="p">.</span><span class="n">println</span><span class="p">();</span>
+
+<span class="w">    </span><span class="o">//</span><span class="w"> </span><span class="o">=====</span><span class="w"> </span><span class="n">匿名類別</span><span class="w"> </span><span class="mi">2</span><span class="err">：</span><span class="n">繼承成員內部類別並覆寫方法</span><span class="w"> </span><span class="o">=====</span>
+<span class="w">    </span><span class="k">Outer</span><span class="p">.</span><span class="n">MemberInnerClass</span><span class="w"> </span><span class="n">anonInner</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">outer</span><span class="p">.</span><span class="k">new</span><span class="w"> </span><span class="n">MemberInnerClass</span><span class="p">()</span><span class="w"> </span><span class="err">{</span>
+<span class="w">        </span><span class="nv">@Override</span>
+<span class="w">        </span><span class="n">void</span><span class="w"> </span><span class="n">printFromMemberInner</span><span class="p">()</span><span class="w"> </span><span class="err">{</span>
+<span class="w">            </span><span class="o">//</span><span class="w"> </span><span class="n">先呼叫原本行為</span>
+<span class="w">            </span><span class="n">super</span><span class="p">.</span><span class="n">printFromMemberInner</span><span class="p">();</span>
+<span class="w">            </span><span class="o">//</span><span class="w"> </span><span class="n">再加上匿名子類別自己的行為</span>
+<span class="w">            </span><span class="k">System</span><span class="p">.</span><span class="k">out</span><span class="p">.</span><span class="n">println</span><span class="p">(</span><span class="ss">&quot;Anonymous subclass -&gt; extra line&quot;</span><span class="p">);</span>
+<span class="w">        </span><span class="err">}</span>
+<span class="w">    </span><span class="err">}</span><span class="p">;</span>
+<span class="w">    </span><span class="n">anonInner</span><span class="p">.</span><span class="n">printFromMemberInner</span><span class="p">();</span>
+<span class="err">}</span>
+</code></pre></div>
+
+<p>}</p>
+<h3 id="_3">🔹 輸出：</h3>
+<p>MemberInnerClass -&gt; outerField: Outer Field
+MemberInnerClass -&gt; staticField: Static Field</p>
+<p>LocalClass -&gt; outerField: Outer Field
+LocalClass -&gt; staticField: Static Field
+LocalClass -&gt; localVar: 42
+LocalClass -&gt; param: Method Parameter</p>
+<p>Greeter (anonymous) -&gt; staticField: Static Field
+Greeter (anonymous) -&gt; outerField via instance: Outer Field
+Hello, Alice</p>
+<p>MemberInnerClass -&gt; outerField: Outer Field
+MemberInnerClass -&gt; staticField: Static Field
+Anonymous subclass -&gt; extra line</p>
+<h2 id="_4">名詞介紹</h2>
+<h3 id="1-enclosing-class">1️⃣ 封閉類別（Enclosing Class）</h3>
+<ul>
+<li>
+<p>定義在另一個類別裡的巢狀類別（nested class），它的外層類別就是它的封閉類別。</p>
+</li>
+<li>
+<p>巢狀類別可以直接存取封閉類別的成員（包含 private）。</p>
+</li>
+<li>
+<p>例子：成員內部類別、本地類別、匿名類別的外層類別，都是它們的封閉類別。</p>
+</li>
+</ul>
+<h3 id="2-enclosing-method">2️⃣ 封閉方法（Enclosing Method）</h3>
+<ul>
+<li>
+<p>本地類別（Local Class）或匿名類別定義所在的方法、建構子或初始化區塊，就是它們的封閉方法/封閉區塊。</p>
+</li>
+<li>
+<p>本地類別可以存取封閉方法中的final 或 effectively final 的區域變數和參數。</p>
+</li>
+</ul>
+<h3 id="3-final-effectively-final">3️⃣ Final / Effectively Final 限制</h3>
+<ul>
+<li>
+<p>因為本地類別存取封閉方法變數時，會捕獲變數的值。</p>
+</li>
+<li>
+<p>若該變數會被修改，就不是 effectively final，編譯會錯。</p>
+</li>
+<li>
+<p>JDK 8 之後，不必顯式 final，但初始化後不能再改值。</p>
+</li>
+</ul>
+<h2 id="_5">📌 對照表</h2>
+    </article>
+    <p class="post-meta">
+      原文：
+      <a href="https://github.com/Vincent23412/diary/blob/main/content/daily-notes/2025-08-09.md" target="_blank">GitHub</a> ·
+      <a href="https://raw.githubusercontent.com/Vincent23412/diary/main/content/daily-notes/2025-08-09.md" target="_blank">raw</a>
+    </p>
+  </main>
+
+  <footer class="container py-24">
+    <small>最後更新：2025-10-25</small>
+  </footer>
+</body>
+</html>

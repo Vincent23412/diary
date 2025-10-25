@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="zh-Hant-TW">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>2025-05-29</title>
+  <link rel="stylesheet" href="/notes/style.css" />
+</head>
+<body>
+  <header class="container py-24">
+    <h1 class="title">2025-05-29</h1>
+    <nav class="nav">
+      <a href="/notes/daily-notes/index.html" class="nav-link">← 回分類</a>
+      <a href="/notes/index.html" class="nav-link">回總覽</a>
+    </nav>
+  </header>
+
+  <main class="container card">
+    <article class="post-content">
+      <h1 id="aws-ec2-snapshot">🛠️ AWS EC2 快照（Snapshot）復原全攻略</h1>
+<h2 id="_1">📌 快照是什麼？</h2>
+<ul>
+<li>快照（Snapshot）是對 EBS 磁碟的完整區塊層級備份。</li>
+<li>包含所有資料：Linux 作業系統、套件、設定檔、使用者資料等。</li>
+<li>可用來：</li>
+<li><strong>復原資料</strong></li>
+<li><strong>重建系統</strong></li>
+<li><strong>橫向擴展其他 EC2 機器</strong></li>
+</ul>
+<hr />
+<h2 id="_2">🧠 快照會備份哪些內容？</h2>
+<table>
+<thead>
+<tr>
+<th>項目</th>
+<th>是否包含</th>
+<th>備註</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Linux 作業系統本身</td>
+<td>✅</td>
+<td>kernel、shell、systemd</td>
+</tr>
+<tr>
+<td>已安裝的程式套件</td>
+<td>✅</td>
+<td>如 git、python、tmux</td>
+</tr>
+<tr>
+<td>使用者的家目錄 <code>/home</code></td>
+<td>✅</td>
+<td>包括資料、虛擬環境等</td>
+</tr>
+<tr>
+<td>系統設定檔 <code>/etc/*</code></td>
+<td>✅</td>
+<td>SSH、時區等設定</td>
+</tr>
+<tr>
+<td>RAM 記憶體內容</td>
+<td>❌</td>
+<td>不包含記憶體中暫時資料</td>
+</tr>
+<tr>
+<td>執行中的程式</td>
+<td>❌</td>
+<td>只保存磁碟內容，不含執行狀態</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="_3">📦 快照如何還原？</h2>
+<p>有兩種方式：</p>
+<h3 id="_4">方法一：掛載成資料磁碟（推薦用於讀資料或備份）</h3>
+<ol>
+<li>Snapshots → 選擇快照 → <code>Actions &gt; Create Volume</code>
+   - AZ 要與 EC2 相同</li>
+<li>Volumes → <code>Attach Volume</code> 到你的 EC2
+   - 裝置命名建議：<code>/dev/sdf</code>（Linux 上變成 <code>/dev/xvdf</code>）</li>
+<li>SSH 進入 EC2 後掛載：
+   <code>bash
+   lsblk
+   sudo mkdir /mnt/old-data
+   sudo mount /dev/xvdf1 /mnt/old-data
+   ls /mnt/old-data</code>
+✅ 優點：不會干擾主系統，可用於資料檢查、復原設定等
+❌ 不會啟動快照裡的作業系統（不會變成兩個 OS）</li>
+</ol>
+<h3 id="ami">方法二：從快照建立 AMI → 啟動完整新機</h3>
+<p>Snapshots → Actions &gt; Create Image</p>
+<p>填好映像名稱（AMI）→ 建立</p>
+<p>到 AMIs → 點選新建立的映像 → Launch 建立新 EC2</p>
+<p>✅ 優點：整機還原原樣，OS、設定、資料都保留
+✅ 可用於整機備份、異地轉移等需求</p>
+<h3 id="_5">❓ 常見疑問</h3>
+<p>❓ 從快照建立 Volume 掛載到 EC2，會不會有兩個作業系統？
+不會。</p>
+<p>EC2 只從「根磁碟（通常是 /dev/xvda）」開機。</p>
+<p>掛載的 Volume 即使來自完整 OS 快照，也只是「資料磁碟」。</p>
+<p>不會主動啟用裡面的 OS，等於把舊系統當資料夾瀏覽而已。</p>
+<p>🧭 比較表：兩種還原方式
+用途  建議方式 是否會變 OS
+資料還原／存取設定   掛載 Volume   ❌ 否
+整機重建／異地還原   建立 AMI → 新建 EC2 ✅ 是
+檢查舊機資料  掛載 Volume   ❌ 否
+快速重建環境  建立 AMI → 新建 EC2 ✅ 是</p>
+<p>🔧 附錄：相關指令參考</p>
+<p>查看磁碟</p>
+<div class="codehilite"><pre><span></span><code>lsblk
+</code></pre></div>
+
+<p>掛載磁碟</p>
+<div class="codehilite"><pre><span></span><code>sudo mkdir /mnt/yourdir
+sudo mount /dev/xvdf1 /mnt/yourdir
+</code></pre></div>
+
+<p>若不知道分割區</p>
+<div class="codehilite"><pre><span></span><code>file -s /dev/xvdf
+</code></pre></div>
+
+<p>若有格式，可能是直接 mount /dev/xvdf</p>
+<h3 id="_6">📝 建議命名規則</h3>
+<p>Volume 名稱建議標明用途（e.g. snapshot-data-vol-2025-05）</p>
+<p>AMI 建議寫上來源快照與時間（e.g. recovery-ami-from-snap-xyz-2025-05-27）</p>
+<p>📌 小提醒
+快照不會自動加密，要手動加密 Volume 或用加密 AMI</p>
+<p>掛載的 Volume 記得 Unmount 再 detach，避免資料損壞</p>
+<p>同一個快照可以重複建立多顆 Volume，用於橫向擴展</p>
+    </article>
+    <p class="post-meta">
+      原文：
+      <a href="https://github.com/Vincent23412/diary/blob/main/content/daily-notes/2025-05-29.md" target="_blank">GitHub</a> ·
+      <a href="https://raw.githubusercontent.com/Vincent23412/diary/main/content/daily-notes/2025-05-29.md" target="_blank">raw</a>
+    </p>
+  </main>
+
+  <footer class="container py-24">
+    <small>最後更新：2025-10-25</small>
+  </footer>
+</body>
+</html>

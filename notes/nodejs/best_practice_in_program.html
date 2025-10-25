@@ -1,0 +1,208 @@
+<!doctype html>
+<html lang="zh-Hant-TW">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Best Practice In Program</title>
+  <link rel="stylesheet" href="/notes/style.css" />
+</head>
+<body>
+  <header class="container py-24">
+    <h1 class="title">Best Practice In Program</h1>
+    <nav class="nav">
+      <a href="/notes/nodejs/index.html" class="nav-link">← 回分類</a>
+      <a href="/notes/index.html" class="nav-link">回總覽</a>
+    </nav>
+  </header>
+
+  <main class="container card">
+    <article class="post-content">
+      <p>以下是完整整理的 Express 生產環境最佳實踐筆記，包含 Gzip 壓縮、同步非同步使用、日誌記錄、例外處理，搭配你剛剛問的 req.locals 補充說明：</p>
+<hr />
+<h1 id="nodejs-express">Node.js Express 生產環境最佳實踐整理</h1>
+<h2 id="1-gzip">1️⃣ Gzip 壓縮：減少流量、提升速度</h2>
+<h3 id="_1">✅ 概念</h3>
+<ul>
+<li>Gzip 壓縮可顯著減少回應體積，提升 Web 和 API 響應速度。</li>
+</ul>
+<h3 id="express">✅ Express 實作</h3>
+<div class="codehilite"><pre><span></span><code><span class="kd">const</span><span class="w"> </span><span class="nx">compression</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">require</span><span class="p">(</span><span class="s1">&#39;compression&#39;</span><span class="p">);</span>
+<span class="kd">const</span><span class="w"> </span><span class="nx">express</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">require</span><span class="p">(</span><span class="s1">&#39;express&#39;</span><span class="p">);</span>
+<span class="kd">const</span><span class="w"> </span><span class="nx">app</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">express</span><span class="p">();</span>
+
+<span class="nx">app</span><span class="p">.</span><span class="nx">use</span><span class="p">(</span><span class="nx">compression</span><span class="p">());</span>
+</code></pre></div>
+
+<h3 id="_2">✅ 生產環境推薦做法</h3>
+<ul>
+<li>高流量網站建議交給 Nginx 處理 Gzip：</li>
+</ul>
+<div class="codehilite"><pre><span></span><code><span class="k">gzip</span><span class="w"> </span><span class="no">on</span><span class="p">;</span>
+<span class="k">gzip_types</span><span class="w"> </span><span class="s">text/plain</span><span class="w"> </span><span class="s">application/json</span><span class="w"> </span><span class="s">text/css</span><span class="w"> </span><span class="s">application/javascript</span><span class="p">;</span>
+</code></pre></div>
+
+<hr />
+<h2 id="2">2️⃣ 避免同步函數：保持非同步、避免堵塞</h2>
+<h3 id="_3">✅ 核心概念</h3>
+<ul>
+<li>同步函數（例如 <code>fs.readFileSync()</code>）會阻塞整個事件迴圈，影響效能。</li>
+<li>在 <strong>非同步為主的 Node.js</strong> 環境，應該盡可能避免同步操作。</li>
+</ul>
+<h3 id="_4">✅ 開發檢查方法</h3>
+<div class="codehilite"><pre><span></span><code>node<span class="w"> </span>--trace-sync-io<span class="w"> </span>app.js
+</code></pre></div>
+
+<ul>
+<li>使用該指令可追蹤同步 API 使用位置。</li>
+</ul>
+<h3 id="_5">✅ 正確做法</h3>
+<ul>
+<li><strong>只在啟動時用同步 API</strong>（例如讀取設定檔）。</li>
+<li><strong>非同步為主</strong>：</li>
+</ul>
+<div class="codehilite"><pre><span></span><code><span class="kd">const</span><span class="w"> </span><span class="nx">fs</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">require</span><span class="p">(</span><span class="s1">&#39;fs/promises&#39;</span><span class="p">);</span>
+<span class="kd">const</span><span class="w"> </span><span class="nx">data</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">await</span><span class="w"> </span><span class="nx">fs</span><span class="p">.</span><span class="nx">readFile</span><span class="p">(</span><span class="s1">&#39;./test.txt&#39;</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;utf-8&#39;</span><span class="p">);</span>
+</code></pre></div>
+
+<hr />
+<h2 id="3-log-log">3️⃣ 正確日誌記錄：區分除錯 log 與活動 log</h2>
+<h3 id="_6">✅ 常見問題</h3>
+<ul>
+<li><code>console.log()</code>、<code>console.error()</code> 是同步的，不建議用於高併發生產環境。</li>
+</ul>
+<h3 id="_7">✅ 推薦方案</h3>
+<table>
+<thead>
+<tr>
+<th>用途</th>
+<th>工具</th>
+<th>說明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>除錯</td>
+<td><code>debug</code></td>
+<td>開發用除錯 log，不影響正式環境</td>
+</tr>
+<tr>
+<td>活動日誌</td>
+<td><code>pino</code></td>
+<td>高效能非同步 log，支援 log 等級、JSON 輸出</td>
+</tr>
+</tbody>
+</table>
+<h3 id="debug">✅ Debug 使用方式</h3>
+<div class="codehilite"><pre><span></span><code><span class="kd">const</span><span class="w"> </span><span class="nx">debug</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">require</span><span class="p">(</span><span class="s1">&#39;debug&#39;</span><span class="p">)(</span><span class="s1">&#39;app:api&#39;</span><span class="p">);</span>
+<span class="nx">debug</span><span class="p">(</span><span class="s1">&#39;API called&#39;</span><span class="p">);</span>
+</code></pre></div>
+
+<p>執行：</p>
+<div class="codehilite"><pre><span></span><code><span class="nv">$env</span>:DEBUG<span class="o">=</span><span class="s2">&quot;app:*&quot;</span><span class="p">;</span><span class="w"> </span>node<span class="w"> </span>app.js<span class="w"> </span><span class="c1"># Windows PowerShell</span>
+</code></pre></div>
+
+<h3 id="pino">✅ Pino 使用方式</h3>
+<div class="codehilite"><pre><span></span><code><span class="kd">const</span><span class="w"> </span><span class="nx">pino</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">require</span><span class="p">(</span><span class="s1">&#39;pino&#39;</span><span class="p">);</span>
+<span class="kd">const</span><span class="w"> </span><span class="nx">logger</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">pino</span><span class="p">();</span>
+<span class="nx">logger</span><span class="p">.</span><span class="nx">info</span><span class="p">(</span><span class="s1">&#39;server started&#39;</span><span class="p">);</span>
+</code></pre></div>
+
+<hr />
+<h2 id="4">4️⃣ 正確例外處理：防止程式崩潰</h2>
+<h3 id="_8">✅ 核心觀念</h3>
+<ul>
+<li>Node.js 不處理例外時，應用會崩潰，<strong>正確捕捉例外是穩定性關鍵</strong>。</li>
+</ul>
+<h3 id="_9">✅ 同步錯誤處理</h3>
+<div class="codehilite"><pre><span></span><code><span class="nx">app</span><span class="p">.</span><span class="nx">get</span><span class="p">(</span><span class="s1">&#39;/search&#39;</span><span class="p">,</span><span class="w"> </span><span class="p">(</span><span class="nx">req</span><span class="p">,</span><span class="w"> </span><span class="nx">res</span><span class="p">)</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="nx">setImmediate</span><span class="p">(()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">try</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="kd">const</span><span class="w"> </span><span class="nx">json</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">JSON</span><span class="p">.</span><span class="nx">parse</span><span class="p">(</span><span class="nx">req</span><span class="p">.</span><span class="nx">query</span><span class="p">.</span><span class="nx">params</span><span class="p">);</span>
+<span class="w">      </span><span class="nx">res</span><span class="p">.</span><span class="nx">send</span><span class="p">(</span><span class="s1">&#39;OK&#39;</span><span class="p">);</span>
+<span class="w">    </span><span class="p">}</span><span class="w"> </span><span class="k">catch</span><span class="w"> </span><span class="p">(</span><span class="nx">e</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nx">res</span><span class="p">.</span><span class="nx">status</span><span class="p">(</span><span class="mf">400</span><span class="p">).</span><span class="nx">send</span><span class="p">(</span><span class="s1">&#39;Invalid JSON&#39;</span><span class="p">);</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">  </span><span class="p">});</span>
+<span class="p">});</span>
+</code></pre></div>
+
+<h3 id="asyncawait">✅ 非同步錯誤處理 (async/await)</h3>
+<div class="codehilite"><pre><span></span><code><span class="nx">app</span><span class="p">.</span><span class="nx">get</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">,</span><span class="w"> </span><span class="k">async</span><span class="w"> </span><span class="p">(</span><span class="nx">req</span><span class="p">,</span><span class="w"> </span><span class="nx">res</span><span class="p">,</span><span class="w"> </span><span class="nx">next</span><span class="p">)</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="k">try</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="kd">const</span><span class="w"> </span><span class="nx">data</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">await</span><span class="w"> </span><span class="nx">userData</span><span class="p">();</span>
+<span class="w">    </span><span class="nx">res</span><span class="p">.</span><span class="nx">send</span><span class="p">(</span><span class="nx">data</span><span class="p">);</span>
+<span class="w">  </span><span class="p">}</span><span class="w"> </span><span class="k">catch</span><span class="w"> </span><span class="p">(</span><span class="nx">err</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">next</span><span class="p">(</span><span class="nx">err</span><span class="p">);</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="p">});</span>
+</code></pre></div>
+
+<p>全局錯誤處理中間件：</p>
+<div class="codehilite"><pre><span></span><code><span class="nx">app</span><span class="p">.</span><span class="nx">use</span><span class="p">((</span><span class="nx">err</span><span class="p">,</span><span class="w"> </span><span class="nx">req</span><span class="p">,</span><span class="w"> </span><span class="nx">res</span><span class="p">,</span><span class="w"> </span><span class="nx">next</span><span class="p">)</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="nx">res</span><span class="p">.</span><span class="nx">status</span><span class="p">(</span><span class="nx">err</span><span class="p">.</span><span class="nx">status</span><span class="w"> </span><span class="o">??</span><span class="w"> </span><span class="mf">500</span><span class="p">).</span><span class="nx">send</span><span class="p">({</span><span class="w"> </span><span class="nx">error</span><span class="o">:</span><span class="w"> </span><span class="nx">err</span><span class="p">.</span><span class="nx">message</span><span class="w"> </span><span class="p">});</span>
+<span class="p">});</span>
+</code></pre></div>
+
+<hr />
+<h2 id="5-reqlocals-middleware">5️⃣ req.locals 實戰用法：跨 middleware 傳遞資料</h2>
+<h3 id="_10">✅ 說明</h3>
+<ul>
+<li>Express 預設有 <code>res.locals</code>，但 <code>req.locals</code> 是開發者自定義的屬性，用來在多個 middleware 傳遞資料（例如 user 資訊）。</li>
+</ul>
+<h3 id="_11">✅ 範例</h3>
+<div class="codehilite"><pre><span></span><code><span class="nx">app</span><span class="p">.</span><span class="nx">use</span><span class="p">(</span><span class="k">async</span><span class="w"> </span><span class="p">(</span><span class="nx">req</span><span class="p">,</span><span class="w"> </span><span class="nx">res</span><span class="p">,</span><span class="w"> </span><span class="nx">next</span><span class="p">)</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="nx">req</span><span class="p">.</span><span class="nx">locals</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">user</span><span class="o">:</span><span class="w"> </span><span class="k">await</span><span class="w"> </span><span class="nx">getUser</span><span class="p">(</span><span class="nx">req</span><span class="p">)</span><span class="w"> </span><span class="p">};</span>
+<span class="w">  </span><span class="nx">next</span><span class="p">();</span>
+<span class="p">});</span>
+
+<span class="nx">app</span><span class="p">.</span><span class="nx">get</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">,</span><span class="w"> </span><span class="p">(</span><span class="nx">req</span><span class="p">,</span><span class="w"> </span><span class="nx">res</span><span class="p">)</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="nx">res</span><span class="p">.</span><span class="nx">json</span><span class="p">({</span><span class="w"> </span><span class="nx">user</span><span class="o">:</span><span class="w"> </span><span class="nx">req</span><span class="p">.</span><span class="nx">locals</span><span class="p">.</span><span class="nx">user</span><span class="w"> </span><span class="p">});</span>
+<span class="p">});</span>
+</code></pre></div>
+
+<hr />
+<h2 id="_12">🎁 總結</h2>
+<table>
+<thead>
+<tr>
+<th>項目</th>
+<th>核心重點</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Gzip 壓縮</td>
+<td>Express 小專案用 <code>compression()</code>，大專案建議用 Nginx</td>
+</tr>
+<tr>
+<td>避免同步</td>
+<td>生產環境應盡可能全非同步；用 <code>--trace-sync-io</code> 查漏</td>
+</tr>
+<tr>
+<td>日誌記錄</td>
+<td><code>debug</code> 控制除錯 log，<code>pino</code> 處理正式日誌</td>
+</tr>
+<tr>
+<td>例外處理</td>
+<td>sync 用 try-catch，async 用 <code>next(err)</code></td>
+</tr>
+<tr>
+<td>req.locals</td>
+<td>用來跨 middleware 存取 user、traceId 等資訊</td>
+</tr>
+</tbody>
+</table>
+<hr />
+    </article>
+    <p class="post-meta">
+      原文：
+      <a href="https://github.com/Vincent23412/diary/blob/main/content/nodejs/best_practice_in_program.md" target="_blank">GitHub</a> ·
+      <a href="https://raw.githubusercontent.com/Vincent23412/diary/main/content/nodejs/best_practice_in_program.md" target="_blank">raw</a>
+    </p>
+  </main>
+
+  <footer class="container py-24">
+    <small>最後更新：2025-10-25</small>
+  </footer>
+</body>
+</html>

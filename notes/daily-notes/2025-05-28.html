@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="zh-Hant-TW">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>2025-05-28</title>
+  <link rel="stylesheet" href="/notes/style.css" />
+</head>
+<body>
+  <header class="container py-24">
+    <h1 class="title">2025-05-28</h1>
+    <nav class="nav">
+      <a href="/notes/daily-notes/index.html" class="nav-link">← 回分類</a>
+      <a href="/notes/index.html" class="nav-link">回總覽</a>
+    </nav>
+  </header>
+
+  <main class="container card">
+    <article class="post-content">
+      <h2 id="linux">📁 Linux 實用指令</h2>
+<h3 id="_1">檢查檔案大小</h3>
+<div class="codehilite"><pre><span></span><code>du<span class="w"> </span>-sh<span class="w"> </span>檔案或資料夾路徑
+</code></pre></div>
+
+<h3 id="_2">統計檔案數量</h3>
+<div class="codehilite"><pre><span></span><code>ls<span class="w"> </span><span class="p">|</span><span class="w"> </span>wc<span class="w"> </span>-l
+</code></pre></div>
+
+<h3 id="targz">解壓縮 <code>.tar.gz</code></h3>
+<div class="codehilite"><pre><span></span><code>tar<span class="w"> </span>-xzvf<span class="w"> </span>檔案.tar.gz
+tar<span class="w"> </span>-xzvf<span class="w"> </span>檔案.tar.gz<span class="w"> </span>-C<span class="w"> </span>目標資料夾
+</code></pre></div>
+
+<hr />
+<h2 id="scp">🔄 檔案上傳與下載（scp）</h2>
+<h3 id="ec2">從 EC2 下載到本機</h3>
+<p>什麼是 scp？
+scp 是一個 Linux / macOS 常見的指令，用來在本機與遠端主機之間「安全地複製檔案」的工具，透過 SSH（加密通道） 傳輸，安全又方便。</p>
+<p>📦 語法格式</p>
+<div class="codehilite"><pre><span></span><code>scp [選項] 原始位置 目標位置
+</code></pre></div>
+
+<p>常見用途
+✅ 1. 從本機傳到遠端（上傳）</p>
+<div class="codehilite"><pre><span></span><code>scp -i key.pem myfile.txt ec2-user@&lt;遠端IP&gt;:~
+</code></pre></div>
+
+<p>這會把 myfile.txt 上傳到遠端主機的使用者家目錄。</p>
+<p>✅ 2. 從遠端傳回本機（下載）</p>
+<div class="codehilite"><pre><span></span><code>scp -i key.pem ec2-user@&lt;遠端IP&gt;:~/data.csv .
+</code></pre></div>
+
+<p>這會把 data.csv 下載到目前所在的本機資料夾。</p>
+<p>✅ 3. 傳整個資料夾（加 -r）</p>
+<div class="codehilite"><pre><span></span><code>scp -i key.pem -r myfolder/ ec2-user@&lt;遠端IP&gt;:~/
+</code></pre></div>
+
+<h3 id="_3">常見錯誤</h3>
+<ul>
+<li><code>No such file or directory</code>: 本機路徑不存在，先建立資料夾。</li>
+<li><code>Is a directory</code>: 指定目標為資料夾，應該明確指定檔案名或確認目錄存在。</li>
+</ul>
+<hr />
+    </article>
+    <p class="post-meta">
+      原文：
+      <a href="https://github.com/Vincent23412/diary/blob/main/content/daily-notes/2025-05-28.md" target="_blank">GitHub</a> ·
+      <a href="https://raw.githubusercontent.com/Vincent23412/diary/main/content/daily-notes/2025-05-28.md" target="_blank">raw</a>
+    </p>
+  </main>
+
+  <footer class="container py-24">
+    <small>最後更新：2025-10-25</small>
+  </footer>
+</body>
+</html>

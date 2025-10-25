@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="zh-Hant-TW">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>2025-06-17</title>
+  <link rel="stylesheet" href="/notes/style.css" />
+</head>
+<body>
+  <header class="container py-24">
+    <h1 class="title">2025-06-17</h1>
+    <nav class="nav">
+      <a href="/notes/daily-notes/index.html" class="nav-link">← 回分類</a>
+      <a href="/notes/index.html" class="nav-link">回總覽</a>
+    </nav>
+  </header>
+
+  <main class="container card">
+    <article class="post-content">
+      <hr />
+<h2 id="_1">📦 套件安裝</h2>
+<p>```bash
+npm install @web3-storage/w3up-client @web3-storage/file</p>
+<h2 id="_2">📁 專案結構建議</h2>
+<p>project-root/
+├── .w3up/                      # 儲存 Agent 身份與 delegation 憑證
+├── example.txt                # 要上傳的測試檔
+└── upload.ts                  # 主程式入口</p>
+<h2 id="_3">✨ 完整範例：從登入到上傳</h2>
+<p>import { create } from '@web3-storage/w3up-client'
+import { File } from '@web3-storage/file'
+import fs from 'fs'</p>
+<p>async function main() {
+  const client = await create()</p>
+<p>// 1. 使用 Email 登入（只需執行一次）
+  const email = 'you@example.com'
+  console.log(<code>📨 Sending login link to ${email}...</code>)
+  const account = await client.login(email)</p>
+<p>// 2. 等待驗證與選擇方案
+  console.log('⏳ Waiting for login confirmation...')
+  await account.plan.wait()
+  console.log('✅ Email verified and plan active!')</p>
+<p>// 3. 建立 Space
+  const space = await client.createSpace('my-space', { account })
+  await client.setCurrentSpace(space.did())
+  console.log('🪐 Space created:', space.did())</p>
+<p>// 4. 上傳本地檔案
+  const buffer = fs.readFileSync('example.txt')
+  const file = new File([buffer], 'example.txt')
+  const result = await client.uploadFile(file)</p>
+<p>console.log('📦 Uploaded CID:', result.cid.toString())
+  console.log(<code>🔗 View on IPFS: https://${result.cid}.ipfs.w3s.link</code>)
+}</p>
+<p>main().catch(console.error)</p>
+<h2 id="login">📌 login 流程說明</h2>
+<h2 id="_4">🔐 檢查是否已登入</h2>
+<p>可用 client.hasAccount() 判斷是否需要再次登入：</p>
+<p>if (!(await client.hasAccount())) {
+  const account = await client.login('you@example.com')
+  await account.plan.wait()
+}</p>
+<h2 id="space">🗂 多次使用 Space</h2>
+<p>await client.setCurrentSpace('<space-did>')</p>
+<p>你可以在多個 Space 間切換，只要之前有建立過或 addSpace() 進來的 delegation。</p>
+<h2 id="api">📂 上傳相關 API</h2>
+<h2 id="_5">🔗 預覽網址格式</h2>
+<p>https://${cid}.ipfs.w3s.link</p>
+<h2 id="_6">🧠 補充說明</h2>
+<ul>
+<li>
+<p>登入與 Space 建立只需執行一次，除非：</p>
+</li>
+<li>
+<p>若部署在 Lambda/Docker，請使用 delegation 模式（BYOD）</p>
+</li>
+</ul>
+    </article>
+    <p class="post-meta">
+      原文：
+      <a href="https://github.com/Vincent23412/diary/blob/main/content/daily-notes/2025-06-17.md" target="_blank">GitHub</a> ·
+      <a href="https://raw.githubusercontent.com/Vincent23412/diary/main/content/daily-notes/2025-06-17.md" target="_blank">raw</a>
+    </p>
+  </main>
+
+  <footer class="container py-24">
+    <small>最後更新：2025-10-25</small>
+  </footer>
+</body>
+</html>

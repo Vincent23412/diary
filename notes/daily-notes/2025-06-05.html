@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="zh-Hant-TW">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>2025-06-05</title>
+  <link rel="stylesheet" href="/notes/style.css" />
+</head>
+<body>
+  <header class="container py-24">
+    <h1 class="title">2025-06-05</h1>
+    <nav class="nav">
+      <a href="/notes/daily-notes/index.html" class="nav-link">← 回分類</a>
+      <a href="/notes/index.html" class="nav-link">回總覽</a>
+    </nav>
+  </header>
+
+  <main class="container card">
+    <article class="post-content">
+      <h1 id="typescript">🛠️ TypeScript 開發過程問題整理筆記</h1>
+<h2 id="1-err_unknown_file_extension-ts">1. ❌ ERR_UNKNOWN_FILE_EXTENSION: ".ts"</h2>
+<h3 id="_1">問題描述</h3>
+<p>使用 Node.js 執行 .ts 檔案會出現錯誤：</p>
+<p>TypeError [ERR_UNKNOWN_FILE_EXTENSION]: Unknown file extension ".ts"</p>
+<h3 id="_2">原因</h3>
+<p>Node.js 不支援直接執行 TypeScript (.ts) 檔案。</p>
+<h3 id="_3">解法</h3>
+<h3 id="ts-node">✅ 方法一：使用 ts-node</h3>
+<p>yarn add -D ts-node typescript
+npx ts-node src/index.ts</p>
+<h3 id="tsx">✅ 方法二：使用 tsx（推薦）</h3>
+<p>yarn add -D tsx typescript
+npx tsx src/index.ts</p>
+<h3 id="_4">✅ 方法三：先編譯再執行</h3>
+<p>npx tsc     # 編譯 ts -&gt; js
+node dist/index.js</p>
+<h2 id="2-yarn">2. ❌ 錯誤的 yarn 安裝指令</h2>
+<h3 id="_5">錯誤指令</h3>
+<p>yarn -i --save-dev @types/express</p>
+<h3 id="_6">正確用法</h3>
+<p>yarn add -D @types/express</p>
+<h2 id="3-tsx">3. ❓ 是否可以使用 .tsx 作為執行工具？</h2>
+<h3 id="_7">回答</h3>
+<p>✅ 是的，這裡的 tsx 是指一個快速執行 TypeScript 的工具（esbuild-kit/tsx），它支援 .ts 和 .tsx 執行，且效能比 ts-node 更好。</p>
+<h3 id="_8">安裝與使用</h3>
+<p>yarn add -D tsx
+npx tsx src/index.ts</p>
+<h2 id="4-nodemon-typescript">4. ✅ 使用 nodemon 搭配 TypeScript</h2>
+<h3 id="_9">安裝方式</h3>
+<p>yarn add -D nodemon tsx typescript</p>
+<h3 id="nodemonjson">建立 nodemon.json</h3>
+<p>{
+  "watch": ["src"],
+  "ext": "ts",
+  "exec": "tsx src/index.ts"
+}</p>
+<h3 id="packagejson-script">package.json script</h3>
+<p>"scripts": {
+  "dev": "nodemon"
+}</p>
+<h3 id="_10">執行方式</h3>
+<p>yarn dev</p>
+<h1 id="typescript-types">🧠 TypeScript 套件型別筆記（@types）</h1>
+<h2 id="_11">✅ 為什麼需要型別定義？</h2>
+<ul>
+<li>
+<p>TypeScript 是靜態型別語言，需要知道每個函式與物件的「型別」才能正確編譯。</p>
+</li>
+<li>
+<p>有些 JavaScript 套件（如 express、ws）沒有內建型別資訊，所以 TypeScript 需要額外的型別定義檔案來理解它們。</p>
+</li>
+</ul>
+<h2 id="typesxxx">🔍 如何判斷一個套件是否需要安裝 @types/xxx？</h2>
+<h3 id="_12">✅ 不需要安裝（內建型別）</h3>
+<p>這些套件本身就支援 TypeScript，安裝主套件即可。</p>
+<ul>
+<li>判斷方法：</li>
+</ul>
+<h3 id="_13">範例：</h3>
+<p>yarn add axios         # ✅ 不需要 @types/axios
+yarn add dayjs         # ✅ 不需要 @types/dayjs</p>
+<h3 id="typesxxx_1">❌ 需要安裝 @types/xxx</h3>
+<p>這些是 JavaScript 套件，沒有型別描述，要透過社群提供的 DefinitelyTyped 安裝型別。</p>
+<ul>
+<li>安裝方式：</li>
+</ul>
+<p>yarn add lodash
+yarn add -D @types/lodash</p>
+<ul>
+<li>D 代表開發階段使用（devDependencies）</li>
+</ul>
+<h3 id="_14">常見範例：</h3>
+<h2 id="_15">🛠 快速判斷方式</h2>
+<h3 id="yarn">方法一：用 yarn 查型別支援</h3>
+<p>yarn info axios types       # ✅ 有型別 =&gt; 不需額外安裝
+yarn info express types     # ❌ 無型別 =&gt; 需要 @types/express</p>
+<h3 id="npm">方法二：查 npm 頁面說明</h3>
+<ul>
+<li>
+<p>搜尋關鍵字 typescript support 或 types</p>
+</li>
+<li>
+<p>看是否提到型別內建、還是需要另外安裝</p>
+</li>
+</ul>
+<h2 id="_16">🧾 小提醒</h2>
+<ul>
+<li>
+<p>型別定義只在 開發階段使用，所以應放在 devDependencies</p>
+</li>
+<li>
+<p>如果你部署後還會用 ts-node 直接執行 .ts 檔，這時 @types/xxx 可能需要進 dependencies</p>
+</li>
+</ul>
+<h1 id="typescript-nodejs-port-app-vs-server">🧠 TypeScript / Node.js 開發筆記：Port 被佔用 &amp; app vs server 差異</h1>
+<h2 id="port">🔧 一、當 Port 被佔用時怎麼辦？</h2>
+<h3 id="_17">✅ 問題描述：</h3>
+<p>當你啟動伺服器時出現錯誤：</p>
+<p>Error: listen EADDRINUSE: address already in use 127.0.0.1:3000</p>
+<p>表示 3000 port 已被其他程式佔用。</p>
+<h3 id="_18">✅ 解法步驟：</h3>
+<h3 id="1-port">1️⃣ 查出是誰佔用了該 port</h3>
+<h3 id="windows">Windows：</h3>
+<p>netstat -ano | findstr :3000</p>
+<p>會看到一行類似這樣的結果，最後的數字是 PID：</p>
+<p>TCP    127.0.0.1:3000     0.0.0.0:0     LISTENING     12345</p>
+<h3 id="macos-linux">macOS / Linux：</h3>
+<p>lsof -i :3000</p>
+<h3 id="2-pid">2️⃣ 終止該程式（使用 PID）</h3>
+<h3 id="windows_1">Windows：</h3>
+<p>taskkill /PID 12345 /F</p>
+<h3 id="macos-linux_1">macOS / Linux：</h3>
+<p>kill -9 12345</p>
+<h3 id="3-port">3️⃣ 或改用其他 port（開發中建議）</h3>
+<p>const PORT = process.env.PORT || 3001;
+server.listen(PORT);</p>
+<p>啟動時改用不同 port：</p>
+<p>PORT=3001 yarn dev</p>
+<h2 id="express-app-server">🚦 二、Express 中 app 和 server 的差異</h2>
+<h3 id="app">✅ app 是什麼？</h3>
+<ul>
+<li>app = express();</li>
+</ul>
+    </article>
+    <p class="post-meta">
+      原文：
+      <a href="https://github.com/Vincent23412/diary/blob/main/content/daily-notes/2025-06-05.md" target="_blank">GitHub</a> ·
+      <a href="https://raw.githubusercontent.com/Vincent23412/diary/main/content/daily-notes/2025-06-05.md" target="_blank">raw</a>
+    </p>
+  </main>
+
+  <footer class="container py-24">
+    <small>最後更新：2025-10-25</small>
+  </footer>
+</body>
+</html>

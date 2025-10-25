@@ -1,0 +1,242 @@
+<!doctype html>
+<html lang="zh-Hant-TW">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>2025-07-19</title>
+  <link rel="stylesheet" href="/notes/style.css" />
+</head>
+<body>
+  <header class="container py-24">
+    <h1 class="title">2025-07-19</h1>
+    <nav class="nav">
+      <a href="/notes/daily-notes/index.html" class="nav-link">← 回分類</a>
+      <a href="/notes/index.html" class="nav-link">回總覽</a>
+    </nav>
+  </header>
+
+  <main class="container card">
+    <article class="post-content">
+      <p>題目解釋</p>
+<p>題目背景：</p>
+<ul>
+<li>
+<p>公司目前在資料中心使用 SMB 檔案伺服器。</p>
+</li>
+<li>
+<p>需求分段：</p>
+</li>
+<li></li>
+<li>
+<p>目標：用 AWS 儲存解法滿足這兩種存取需求。</p>
+</li>
+</ul>
+<p>題目關鍵點解析</p>
+<p>選項詳解</p>
+<p>✅ B. S3 File Gateway + S3 Glacier Deep Archive</p>
+<ul>
+<li>
+<p>✅ SMB 使用者可透過 File Gateway 存取最新資料（高頻資料）</p>
+</li>
+<li>
+<p>✅ 7天後轉 S3 Glacier Deep Archive：可設定 LifeCycle Policy 完成</p>
+</li>
+<li>
+<p>✅ Glacier Deep Archive 最大取回時間 24 小時，符合題目需求</p>
+</li>
+<li>
+<p>✅ 管理成本低，不需改變使用者行為</p>
+</li>
+<li>
+<p>結論：✅ 最佳答案</p>
+</li>
+</ul>
+<p>❌ A. DataSync 直接複製資料到 AWS</p>
+<ul>
+<li>
+<p>❌ DataSync 可用來搬遷資料，但：</p>
+</li>
+<li></li>
+<li>
+<p>結論：❌ 不符合需求</p>
+</li>
+</ul>
+<p>❌ C. FSx File Gateway + S3 Lifecycle</p>
+<ul>
+<li>
+<p>❌ FSx File Gateway 是用來把 on-prem SMB 存取指向 FSx for Windows File Server（非 S3）</p>
+</li>
+<li>
+<p>❌ FSx 不支援 S3 lifecycle rule</p>
+</li>
+<li>
+<p>結論：❌ 架構錯誤，不符題目情境</p>
+</li>
+</ul>
+<p>❌ D. 每個使用者個別存取 S3 + S3 Glacier Flexible Retrieval</p>
+<ul>
+<li>
+<p>❌ 需改變使用者從 SMB 改成直接用 S3 存取</p>
+</li>
+<li>
+<p>❌ 額外管理成本增加</p>
+</li>
+<li>
+<p>結論：❌ 違反「低維護、現有 SMB 存取」需求</p>
+</li>
+</ul>
+<p>✅ 最佳答案</p>
+<p>✅ B. Create an Amazon S3 File Gateway to increase the company’s storage space. Create an S3 Lifecycle policy to transition the data to S3 Glacier Deep Archive after 7 days.</p>
+<p>📌 總結</p>
+<p>題目解釋</p>
+<p>題目背景：</p>
+<ul>
+<li>
+<p>公司每天透過 SFTP 接收報表檔案</p>
+</li>
+<li>
+<p>需要每天晚上進行 批次處理</p>
+</li>
+<li>
+<p>希望搬遷至 AWS Cloud</p>
+</li>
+<li>
+<p>需求：</p>
+</li>
+<li></li>
+</ul>
+<p>各選項解析</p>
+<p>❌ A. AWS Transfer for SFTP + EFS + EC2 Auto Scaling</p>
+<ul>
+<li>
+<p>優點：</p>
+</li>
+<li></li>
+<li>
+<p>缺點：</p>
+</li>
+<li></li>
+<li>
+<p>結論：❌ 非成本效益最佳</p>
+</li>
+</ul>
+<p>❌ B. EC2 + 自架 SFTP + EBS</p>
+<ul>
+<li>
+<p>優點：</p>
+</li>
+<li></li>
+<li>
+<p>缺點：</p>
+</li>
+<li></li>
+<li>
+<p>結論：❌ 高維運負擔</p>
+</li>
+</ul>
+<p>❌ C. EC2 + 自架 SFTP + EFS</p>
+<ul>
+<li>
+<p>優點：</p>
+</li>
+<li></li>
+<li>
+<p>缺點：</p>
+</li>
+<li></li>
+<li>
+<p>結論：❌ 維運高 + 成本高</p>
+</li>
+</ul>
+<p>✅ D. AWS Transfer for SFTP + S3 + EC2 Auto Scaling</p>
+<ul>
+<li>
+<p>✅ Transfer for SFTP：全託管 SFTP 服務</p>
+</li>
+<li>
+<p>✅ S3：便宜、彈性儲存，具高可用性與韌性</p>
+</li>
+<li>
+<p>✅ EC2 Auto Scaling：可設定 scheduled scaling，批次運算只在特定時間啟動 → 節省成本</p>
+</li>
+<li>
+<p>✅ 零管理 SFTP server，零管理儲存空間</p>
+</li>
+<li>
+<p>結論：✅ 最省管理成本且高度可用方案</p>
+</li>
+</ul>
+<p>最佳答案</p>
+<p>✅ D. Deploy AWS Transfer for SFTP and an Amazon S3 bucket for storage. Modify the application to pull the batch files from Amazon S3 to an Amazon EC2 instance for processing. Use an EC2 instance in an Auto Scaling group with a scheduled scaling policy to run the batch operation.</p>
+<p>📌 核心邏輯總結</p>
+<p>題目解析</p>
+<p>這題情境是：</p>
+<ul>
+<li>
+<p>公司網站透過 CloudFront → ALB → EC2 Auto Scaling Group 架構</p>
+</li>
+<li>
+<p>AWS WAF 已經用來防止 SQL injection</p>
+</li>
+<li>
+<p>目標：封鎖特定外部惡意 IP，避免其存取整個網站</p>
+</li>
+</ul>
+<p>選項逐一解析</p>
+<p>A. ❌</p>
+<p>錯誤</p>
+<ul>
+<li>Network ACL (NACL) 是用於 VPC 子網路層級，但 CloudFront 屬於 AWS Edge 網路層級，不在 VPC 內，NACL 無法作用於 CloudFront。</li>
+</ul>
+<p>✅ B.</p>
+<p>正確答案</p>
+<ul>
+<li>
+<p>AWS WAF 是專門設計來封鎖特定 IP，而且可以掛載在 CloudFront distribution 上面，可以直接在 AWS WAF 裡面新增 IP set rule 封鎖該 IP。</p>
+</li>
+<li>
+<p>優勢：</p>
+</li>
+<li></li>
+</ul>
+<p>C. ❌</p>
+<p>錯誤</p>
+<ul>
+<li>Network ACL 是針對 VPC 子網路層級，但流量已經先經過 CloudFront 與 ALB，不應該直接動 NACL，且管理不便。</li>
+</ul>
+<p>D. ❌</p>
+<p>錯誤</p>
+<ul>
+<li>Security Group 是 狀態型防火牆，通常只允許的流量 (不是用來做封鎖大量單一 IP 的用途)，管理性差、維護負擔大。</li>
+</ul>
+<p>🎯 總結</p>
+<p>最佳答案：</p>
+<p>✅ B. Modify the configuration of AWS WAF to add an IP match condition to block the malicious IP address.</p>
+<p>題目解析</p>
+<p>題目情境：</p>
+<ul>
+<li>
+<p>公司有 NFS 伺服器在地端資料中心</p>
+</li>
+<li>
+<p>要定期備份少量資料到 Amazon S3</p>
+</li>
+<li>
+<p>要求：最具成本效益的方案</p>
+</li>
+</ul>
+<p>選項解析</p>
+<p>A. ❌ AWS Glue</p>
+    </article>
+    <p class="post-meta">
+      原文：
+      <a href="https://github.com/Vincent23412/diary/blob/main/content/daily-notes/2025-07-19.md" target="_blank">GitHub</a> ·
+      <a href="https://raw.githubusercontent.com/Vincent23412/diary/main/content/daily-notes/2025-07-19.md" target="_blank">raw</a>
+    </p>
+  </main>
+
+  <footer class="container py-24">
+    <small>最後更新：2025-10-25</small>
+  </footer>
+</body>
+</html>

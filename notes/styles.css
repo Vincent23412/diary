@@ -1,0 +1,46 @@
+:root{
+  --bg:#0b0c0f; --fg:#e7e8ea; --muted:#a9adb6; --card:#12141a;
+  --brand:#ffd166; --border:#20232b; --link:#8ab4ff;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;background:var(--bg);color:var(--fg);font:16px/1.6 system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans TC", Arial, sans-serif}
+a{color:var(--link);text-decoration:none}
+a:hover{text-decoration:underline}
+.container{max-width:960px;margin:0 auto;padding:0 20px}
+.py-24{padding-top:24px;padding-bottom:24px}
+.py-32{padding-top:32px;padding-bottom:32px}
+.title{font-size:clamp(28px,4vw,40px);margin:0 0 8px}
+.sublead,.lead{color:var(--muted);margin:4px 0 0}
+.lead{font-size:18px}
+.nav{margin-top:16px;display:flex;gap:16px;flex-wrap:wrap}
+.nav-link{padding:6px 10px;border:1px solid var(--border);border-radius:999px;background:transparent}
+.nav-link.active{border-color:var(--brand);color:#111;background:var(--brand)}
+.brand{color:var(--brand)}
+.card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:20px;margin:18px 0}
+.section-head{display:flex;justify-content:space-between;align-items:baseline;gap:12px}
+.more{font-size:14px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:12px;margin-top:12px}
+.tile{display:block;padding:16px;border:1px solid var(--border);border-radius:14px;background:#0f1117}
+.tile:hover{border-color:#2b2f3a;background:#121520}
+.tile-title{font-weight:700;margin-bottom:6px}
+.tile-meta{color:var(--muted);font-size:14px}
+.post-list{list-style:none;margin:0;padding:0}
+.post-item{display:flex;flex-wrap:wrap;gap:8px;align-items:baseline;padding:10px 0;border-bottom:1px dashed var(--border)}
+.post-item:last-child{border-bottom:none}
+.post-link{font-weight:600}
+.post-meta{font-size:13px;color:var(--muted)}
+footer small{color:var(--muted)}
+/* code highlight 基礎樣式 */
+.codehilite {
+  background: #1e1e1e;
+  color: #dcdcdc;
+  padding: 12px;
+  border-radius: 8px;
+  overflow-x: auto;
+  font-family: "JetBrains Mono", monospace;
+}
+.codehilite .hll { background-color: #49483e }
+.codehilite .c { color: #75715e } /* Comment */
+.codehilite .k { color: #66d9ef } /* Keyword */
+.codehilite .o { color: #f92672 } /* Operator */
+.codehilite .s { color: #e6db74 } /* String */

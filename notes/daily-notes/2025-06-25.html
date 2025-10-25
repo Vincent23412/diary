@@ -1,0 +1,252 @@
+<!doctype html>
+<html lang="zh-Hant-TW">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>2025-06-25</title>
+  <link rel="stylesheet" href="/notes/style.css" />
+</head>
+<body>
+  <header class="container py-24">
+    <h1 class="title">2025-06-25</h1>
+    <nav class="nav">
+      <a href="/notes/daily-notes/index.html" class="nav-link">← 回分類</a>
+      <a href="/notes/index.html" class="nav-link">回總覽</a>
+    </nav>
+  </header>
+
+  <main class="container card">
+    <article class="post-content">
+      <p>這題目要找的是：</p>
+<ul>
+<li>
+<p>最快速（FASTEST） 聚合方式</p>
+</li>
+<li>
+<p>每個地點每天產生 500 GB 資料</p>
+</li>
+<li>
+<p>全球多個站點、但分析應用只在單一 AWS Region</p>
+</li>
+<li>
+<p>各地點都有高速網路</p>
+</li>
+</ul>
+<p>各選項分析：</p>
+<p>A. ✅ S3 Transfer Acceleration + Multipart Uploads</p>
+<ul>
+<li>
+<p>Transfer Acceleration：</p>
+</li>
+<li></li>
+<li>
+<p>Multipart Upload：</p>
+</li>
+<li></li>
+<li>
+<p>✅ 此選項直接將大量資料上傳至目標 S3 bucket，最快、最直接、全自動</p>
+</li>
+</ul>
+<p>B. 上傳到鄰近 Region，再用 S3 跨區複製</p>
+<ul>
+<li>
+<p>S3 跨區複製是異步操作，通常會有延遲（幾分鐘～小時）</p>
+</li>
+<li>
+<p>雖然可以分散流量、提升區域寫入效率，但增加了中轉等待時間</p>
+</li>
+<li>
+<p>❌ 不是最快速的聚合方式</p>
+</li>
+</ul>
+<p>C. 每天用 AWS Snowball + 跨區複製</p>
+<ul>
+<li>
+<p>Snowball 是為了 低網速 or 離線傳輸（數 TB～PB） 設計</p>
+</li>
+<li>
+<p>題目明說有 高速網路，不需要用 Snowball</p>
+</li>
+<li>
+<p>❌ 傳輸時間包含寄送、上架、處理等作業，絕對不是最快方式</p>
+</li>
+</ul>
+<p>D. 上傳至 EC2 → 存 EBS → 快照 → 複製快照 → 還原分析</p>
+<ul>
+<li>
+<p>流程太長（至少 4 個步驟），操作複雜且時間拖延</p>
+</li>
+<li>
+<p>EBS snapshot 跨區複製也不是即時操作</p>
+</li>
+<li>
+<p>❌ 不是最快，也不是推薦的做法</p>
+</li>
+</ul>
+<p>✅ 最佳選項：</p>
+<p>A. Enable Amazon S3 Transfer Acceleration on the destination bucket. Use multipart uploads to directly upload site data to the destination bucket.</p>
+<p>💡 簡要理由：</p>
+<ul>
+<li>
+<p>Transfer Acceleration 能透過最近的 Edge Location 傳送到 S3 原區域，減少網路延遲與封包丟失</p>
+</li>
+<li>
+<p>Multipart Upload 能有效處理 大檔案（&gt;100 MB~數百 GB），加速上傳速度</p>
+</li>
+<li>
+<p>無需中轉、無需實體設備、無需手動流程</p>
+</li>
+</ul>
+<p>這題要找的是：</p>
+<ul>
+<li>
+<p>對儲存在 Amazon S3 中的 JSON logs 進行查詢</p>
+</li>
+<li>
+<p>查詢為 簡單的 SQL 語句</p>
+</li>
+<li>
+<p>為了 即時需求（on-demand）</p>
+</li>
+<li>
+<p>重點：最少的操作負擔（LEAST operational overhead）</p>
+</li>
+</ul>
+<p>各選項分析：</p>
+<p>A. Amazon Redshift</p>
+<ul>
+<li>
+<p>屬於資料倉儲服務，需先將資料 ETL 匯入 Redshift</p>
+</li>
+<li>
+<p>適合處理結構化資料與大型查詢，但導入需要：</p>
+</li>
+<li></li>
+<li>
+<p>❌ 相對複雜，不符合「最少改動」與「on-demand」需求</p>
+</li>
+</ul>
+<p>B. CloudWatch Logs + SQL 查詢</p>
+<ul>
+<li>
+<p>CloudWatch Logs 本身不提供 SQL 查詢功能</p>
+</li>
+<li>
+<p>可以做搜尋或過濾，但無法針對 JSON 結構執行完整 SQL 分析</p>
+</li>
+<li>
+<p>❌ 不支援這種 JSON 結構化查詢，功能不符</p>
+</li>
+</ul>
+<p>C. ✅ Amazon Athena 直接查詢 S3 JSON</p>
+<ul>
+<li>
+<p>Athena 是基於 Presto 的 serverless SQL 查詢服務</p>
+</li>
+<li>
+<p>可直接查詢 S3 上的 JSON、CSV、Parquet 等檔案</p>
+</li>
+<li>
+<p>搭配 AWS Glue Data Catalog 可更容易管理 schema（也可手動定義）</p>
+</li>
+<li>
+<p>✅ 不需移動資料、不需 ETL、serverless、操作負擔極低</p>
+</li>
+<li>
+<p>✅ 非常適合用來對 logs 做 on-demand SQL 分析</p>
+</li>
+</ul>
+<p>D. AWS Glue + Amazon EMR + Spark SQL</p>
+<ul>
+<li>
+<p>Spark 本身查詢效能高，但：</p>
+</li>
+<li></li>
+<li>
+<p>❌ 成本高、維運負擔重，不符合「最少操作」條件</p>
+</li>
+</ul>
+<p>✅ 正確答案：</p>
+<p>C. Use Amazon Athena directly with Amazon S3 to run the queries as needed</p>
+<p>🔎 加分補充：</p>
+<ul>
+<li>若 logs 儲存在像這樣的結構化 JSON 檔：</li>
+</ul>
+<p>{</p>
+<p>"timestamp": "2025-06-24T12:00:00Z",</p>
+<p>"level": "INFO",</p>
+<p>"message": "User login success",</p>
+<p>"userId": "abc123"</p>
+<p>}</p>
+<ul>
+<li></li>
+<li>
+<p>你只需要：</p>
+</li>
+<li></li>
+</ul>
+<p>SELECT userId, COUNT(*)</p>
+<p>FROM logs</p>
+<p>WHERE level = 'ERROR'</p>
+<p>GROUP BY userId;</p>
+<p>這題的關鍵需求是：</p>
+<ul>
+<li>
+<p>公司透過 AWS Organizations 管理多個 AWS 帳號</p>
+</li>
+<li>
+<p>有一個 S3 bucket 在管理帳號中，用來存放報告</p>
+</li>
+<li>
+<p>想要 限制只有 AWS Organizations 內部的帳號能存取這個 bucket</p>
+</li>
+<li>
+<p>強調：最少的操作負擔（LEAST operational overhead）</p>
+</li>
+</ul>
+<p>各選項分析：</p>
+<p>A. ✅ 使用 aws:PrincipalOrgID 條件鍵設在 S3 Bucket Policy</p>
+<ul>
+<li>
+<p>aws:PrincipalOrgID 是 AWS 提供的 全域條件鍵</p>
+</li>
+<li>
+<p>可用於 IAM policy 或 S3 bucket policy 中，限制只有來自指定 AWS Organizations 的帳號才能存取資源</p>
+</li>
+<li>
+<p>✅ 無需針對每個帳號、每個使用者逐一設定</p>
+</li>
+<li>
+<p>✅ 組織中有新帳號加入也會自動套用條件</p>
+</li>
+<li>
+<p>✅ 最少維運成本，最簡單實作</p>
+</li>
+</ul>
+<p>📌 範例 Bucket Policy 範本：</p>
+<p>{</p>
+<p>"Version": "2012-10-17",</p>
+<p>"Statement": [</p>
+<p>{</p>
+<p>"Sid": "AllowAccessToMyOrg",</p>
+<p>"Effect": "Allow",</p>
+<p>"Principal": "*",</p>
+<p>"Action": "s3:*",</p>
+<p>"Resource": [</p>
+<p>"arn:aws:s3:::my-org-bucket",</p>
+<p>"arn:aws:s3:::my-org-bucket/*"</p>
+<p>],</p>
+<p>"Condition": {</p>
+    </article>
+    <p class="post-meta">
+      原文：
+      <a href="https://github.com/Vincent23412/diary/blob/main/content/daily-notes/2025-06-25.md" target="_blank">GitHub</a> ·
+      <a href="https://raw.githubusercontent.com/Vincent23412/diary/main/content/daily-notes/2025-06-25.md" target="_blank">raw</a>
+    </p>
+  </main>
+
+  <footer class="container py-24">
+    <small>最後更新：2025-10-25</small>
+  </footer>
+</body>
+</html>

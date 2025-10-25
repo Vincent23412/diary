@@ -1,0 +1,206 @@
+<!doctype html>
+<html lang="zh-Hant-TW">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>2025-07-04</title>
+  <link rel="stylesheet" href="/notes/style.css" />
+</head>
+<body>
+  <header class="container py-24">
+    <h1 class="title">2025-07-04</h1>
+    <nav class="nav">
+      <a href="/notes/daily-notes/index.html" class="nav-link">← 回分類</a>
+      <a href="/notes/index.html" class="nav-link">回總覽</a>
+    </nav>
+  </header>
+
+  <main class="container card">
+    <article class="post-content">
+      <p>正確答案是：</p>
+<p>👉 C. Use Reserved Instances for the baseline capacity and use Spot Instances to handle additional capacity</p>
+<p>💡 解釋：</p>
+<p>這題的關鍵是要找出一個 高可用、具成本效益（MOST cost-effective） 的 EC2 運行模式，來應對：</p>
+<ul>
+<li>
+<p>持續性處理需求（no downtime）</p>
+</li>
+<li>
+<p>不穩定的訊息流量（intermittent traffic）</p>
+</li>
+<li>
+<p>可併行處理任務（parallel processing）</p>
+</li>
+</ul>
+<p>✅ 最佳解法：</p>
+<p>Reserved + Spot 組合</p>
+<ul>
+<li>
+<p>Reserved Instances (RI)：</p>
+</li>
+<li></li>
+<li>
+<p>Spot Instances：</p>
+</li>
+<li></li>
+</ul>
+<p>若 Spot 被回收，Reserved 仍可保底維持服務不中斷，成本效益與可用性兼具</p>
+<p>❌ 其他選項為什麼不適合？</p>
+<p>✅ 正確答案：C. Use Reserved Instances for the baseline capacity and use Spot Instances to handle additional capacity</p>
+<p>正確答案是：</p>
+<p>👉 C. Create an Amazon EventBridge (Amazon CloudWatch Events) rule for the Createlmage API call. Configure the target as an Amazon Simple Notification Service (Amazon SNS) topic to send an alert when a Createlmage API call is detected.</p>
+<p>✅ 解釋：</p>
+<p>為什麼選 C？</p>
+<ul>
+<li>
+<p>Amazon EventBridge（原名 CloudWatch Events） 可以即時監聽特定的 AWS API 呼叫事件（例如 EC2 的 CreateImage）。</p>
+</li>
+<li>
+<p>你可以設定規則來偵測這個 API 事件，並將事件傳送給 Amazon SNS，發出通知（例如 Email、SMS、Lambda 等）。</p>
+</li>
+<li>
+<p>不需要自己查 CloudTrail log、寫 Lambda 分析程式或排程任務，自動且零維運負擔。</p>
+</li>
+</ul>
+<p>這是 AWS 官方推薦的最輕量、最即時的事件監控方案。</p>
+<p>❌ 為什麼其他選項不適合？</p>
+<p>🧩 小補充：EventBridge + SNS 的好處</p>
+<ul>
+<li>
+<p>⏱ 即時偵測 CreateImage</p>
+</li>
+<li>
+<p>📉 最小運算成本</p>
+</li>
+<li>
+<p>🔧 幾乎無須程式碼</p>
+</li>
+<li>
+<p>📬 支援多種通知方式（Email、Lambda、HTTP 等）</p>
+</li>
+</ul>
+<p>✅ 正確答案：C. 使用 EventBridge 設定監聽 Createlmage，並透過 SNS 發送警報。</p>
+<p>正確答案是：</p>
+<p>👉 B. Create a gateway VPC endpoint for Amazon S3 in the Availability Zone where the EC2 instance is located. Attach appropriate security groups to the endpoint. Attach a resource policy to the S3 bucket to only allow the EC2 instance’s IAM role for access.</p>
+<p>✅ 解釋：</p>
+<p>問題核心需求：</p>
+<p>資料上傳不能經過公網（No public internet routes）</p>
+<p>只有 EC2 instance 才能上傳</p>
+<p>目標服務是 Amazon S3</p>
+<p>🧩 最適解：</p>
+<p>Gateway VPC Endpoint + IAM Role 限制</p>
+<ul>
+<li>
+<p>Gateway VPC Endpoint 是 S3 與 DynamoDB 專用的 VPC Endpoint，允許 EC2 與 S3 間的通訊走內部 AWS 網路（無需 NAT Gateway 或 Internet Gateway）。</p>
+</li>
+<li>
+<p>搭配 S3 Bucket Policy 限定只有特定 IAM Role（也就是 EC2 的 instance profile）能上傳。</p>
+</li>
+</ul>
+<p>這種設計：</p>
+<ul>
+<li>
+<p>不經過公網</p>
+</li>
+<li>
+<p>成本最低（不用 NAT）</p>
+</li>
+<li>
+<p>易於管控與維運</p>
+</li>
+</ul>
+<p>❌ 為什麼其他選項不對？</p>
+<p>🔐 安全性補充建議：</p>
+<ul>
+<li>
+<p>在 S3 Bucket Policy 加入：</p>
+</li>
+<li></li>
+</ul>
+<p>✅ 正確答案：B. 使用 Gateway VPC Endpoint 搭配 IAM Role 限制，確保安全與私有通訊。</p>
+<p>🌉 Gateway Endpoint vs. Interface Endpoint 差異總覽</p>
+<p>🔎 更具體範例比較</p>
+<p>Gateway Endpoint</p>
+<p>（如 S3）：</p>
+<ul>
+<li>
+<p>你建立一個 Gateway Endpoint</p>
+</li>
+<li>
+<p>它會幫你在 Route Table 中自動加入一條路由：</p>
+</li>
+</ul>
+<p>Destination: pl-xxxx (S3 Prefix List) → Target: vpce-xxxx</p>
+<ul>
+<li></li>
+<li>
+<p>只要 EC2 在這個 Subnet 中，請求 s3.amazonaws.com 會自動走私網。</p>
+</li>
+</ul>
+<p>Interface Endpoint</p>
+<p>（如 SQS）：</p>
+<ul>
+<li>
+<p>建立時會在 Subnet 中生成一個 ENI（彈性網卡）</p>
+</li>
+<li>
+<p>所有請求會導向這個 ENI，例如：</p>
+</li>
+</ul>
+<p>sqs.ap-northeast-1.vpce.amazonaws.com → 10.0.2.35（ENI IP）</p>
+<ul>
+<li></li>
+<li>
+<p>可以用 Security Group 控管誰可以存取它</p>
+</li>
+</ul>
+<p>✅ 什麼時候用哪個？</p>
+<p>📌 總結</p>
+<p>正確答案是：</p>
+<p>👉 A. Configure the Lambda function to run in the VPC with the appropriate security group.</p>
+<p>✅ 解釋：</p>
+<p>問題關鍵：</p>
+<ul>
+<li>
+<p>Lambda 要存取 在公司資料中心（on-premises）內部私有子網中的資料庫</p>
+</li>
+<li>
+<p>AWS 與資料中心之間已透過 Direct Connect 建立連線</p>
+</li>
+<li>
+<p>要求 Lambda 可以透過私有網路（非公網）存取資料庫</p>
+</li>
+</ul>
+<p>✅ 為什麼選 A？</p>
+<ul>
+<li>
+<p>Lambda 預設運行在 AWS 公網中，如果要存取私有網段（VPC 子網、或透過 Direct Connect 連到 on-prem），必須配置 Lambda 運行在 VPC 中</p>
+</li>
+<li>
+<p>設定 Lambda 的 VPC 子網與安全群組，就能讓 Lambda：</p>
+</li>
+<li></li>
+<li>
+<p>完全符合無伺服器 + 私網存取的架構需求</p>
+</li>
+</ul>
+<p>❌ 其他選項為什麼不適合？</p>
+<p>🧩 補充建議：</p>
+<p>若 Lambda 是存取 資料中心內部的私有資料庫，你需要：</p>
+<p>讓 Lambda 加入 VPC（選定有路由到 VGW 的私有子網）</p>
+<p>設定 Lambda 使用的 security group → 開啟對資料庫的連線權限（例如 TCP 3306 for MySQL）</p>
+<p>確保 VPC route table 有指向 Virtual Private Gateway（VGW）</p>
+<p>確保對方資料中心的防火牆與路由設定也允許 Lambda 的 VPC IP 範圍進入</p>
+    </article>
+    <p class="post-meta">
+      原文：
+      <a href="https://github.com/Vincent23412/diary/blob/main/content/daily-notes/2025-07-04.md" target="_blank">GitHub</a> ·
+      <a href="https://raw.githubusercontent.com/Vincent23412/diary/main/content/daily-notes/2025-07-04.md" target="_blank">raw</a>
+    </p>
+  </main>
+
+  <footer class="container py-24">
+    <small>最後更新：2025-10-25</small>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,205 @@
+<!doctype html>
+<html lang="zh-Hant-TW">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>2025-06-12</title>
+  <link rel="stylesheet" href="/notes/style.css" />
+</head>
+<body>
+  <header class="container py-24">
+    <h1 class="title">2025-06-12</h1>
+    <nav class="nav">
+      <a href="/notes/daily-notes/index.html" class="nav-link">← 回分類</a>
+      <a href="/notes/index.html" class="nav-link">回總覽</a>
+    </nav>
+  </header>
+
+  <main class="container card">
+    <article class="post-content">
+      <h2 id="_1">設計安全的工作附載和應用程式</h2>
+<h3 id="_2">🛡️ 防火牆與存取路徑設計</h3>
+<ul>
+<li>使用者的存取請求需經過兩道防線：</li>
+</ul>
+<h3 id="_3">🌍 地端與雲端設計三大原則</h3>
+<p>隔離性（Isolation）</p>
+<p>連通性（Connectivity）</p>
+<p>安全性（Security）</p>
+<h3 id="subnet-design">🏗️ 子網路隔離策略（Subnet Design）</h3>
+<ul>
+<li>
+<p>Public Subnet：</p>
+</li>
+<li>
+<p>Private Subnet：</p>
+</li>
+<li>
+<p>Protected Subnet（或稱 "Isolated"）：</p>
+</li>
+</ul>
+<h3 id="_4">🔐 安全設計工具與策略</h3>
+<h3 id="_5">✅ 安全設計小結</h3>
+<ul>
+<li>
+<p>Security Group 是 EC2 的第一道防線。</p>
+</li>
+<li>
+<p>OS 防火牆是 EC2 內部的第二道防線。</p>
+</li>
+<li>
+<p>NACL 適合用來封鎖特定 IP 或開放大範圍的進出規則。</p>
+</li>
+<li>
+<p>WAF 適合保護 Web 層，對應 OWASP Top 10 攻擊。</p>
+</li>
+</ul>
+<p>問題二</p>
+<p>A：NACL保護的對象是子網
+B：安全權組保護ec2裡面的網卡
+C
+D：細膩度不夠</p>
+<h3 id="b">✅ 選項 B：使用安全群組設定存取權</h3>
+<ul>
+<li>
+<p>正確</p>
+</li>
+<li>
+<p>安全群組是 狀態導向（stateful） 防火牆，適用於每個 EC2 實例</p>
+</li>
+<li>
+<p>可為 A 設定允許 port 80，為 B 設定允許 port 443</p>
+</li>
+<li>
+<p>可細緻控制每個實例的入站流量</p>
+</li>
+</ul>
+<h3 id="a-acl">❌ 選項 A：使用網路 ACL 設定存取權</h3>
+<ul>
+<li>
+<p>錯誤</p>
+</li>
+<li>
+<p>NACL 是 子網層級 的 stateless 防火牆</p>
+</li>
+<li>
+<p>無法分辨子網內不同 EC2 實例的特定流量</p>
+</li>
+<li>
+<p>若允許 port 80，則 B 無法阻擋；若允許 port 443，則 A 會被擋</p>
+</li>
+<li>
+<p>無法同時達成 A、B 的不同流量控制需求</p>
+</li>
+</ul>
+<h3 id="c-vpc">❌ 選項 C：使用 VPC 對等互連設定網路連線</h3>
+<ul>
+<li>
+<p>與本題無關</p>
+</li>
+<li>
+<p>用於 跨 VPC 連線，不解決流量過濾問題</p>
+</li>
+</ul>
+<h3 id="d">❌ 選項 D：使用路由表設定網路連線</h3>
+<ul>
+<li>
+<p>路由表是用來設定目的地網段的轉送</p>
+</li>
+<li>
+<p>無法控制 port 或協定層級的存取權限</p>
+</li>
+</ul>
+<h1 id="typescript-yarn-workspace">🧩 TypeScript + Yarn Workspace 問題整理</h1>
+<h2 id="_6">📁 專案架構</h2>
+<p>root/
+├── package.json        # 設定 workspaces
+├── tsconfig.json       # (可選) root tsconfig
+├── server/             # 子專案 1
+│   ├── package.json
+│   └── src/
+└── utils/              # 子專案 2 (被 server 引用)
+    ├── package.json
+    └── src/</p>
+<h2 id="1yarn-dev">🔧 問題 1：yarn dev 出現錯誤</h2>
+<h3 id="_7">錯誤訊息：</h3>
+<p>error Couldn't find a package.json file in "C:\Users\xxx\Documents\GitHub"</p>
+<h3 id="_8">成因：</h3>
+<p>你在 root 專案中執行 yarn dev，但該資料夾沒有 package.json，無法辨識該命令。</p>
+<h3 id="_9">解法：</h3>
+<ul>
+<li>確保 根目錄有一個 package.json，並定義好 workspaces，例如：</li>
+</ul>
+<p>{
+  "private": true,
+  "workspaces": ["server", "utils"]
+}</p>
+<ul>
+<li>然後進入對應子專案執行指令：</li>
+</ul>
+<p>cd server
+yarn dev</p>
+<h2 id="2dep0128-invalid-main-field">⚠️ 問題 2：[DEP0128] Invalid 'main' field</h2>
+<h3 id="_10">錯誤訊息：</h3>
+<p>DeprecationWarning: Invalid 'main' field in 'utils/package.json' of 'index.js'.</p>
+<h3 id="_11">成因：</h3>
+<p>TypeScript 專案實際編譯出來的是 dist/index.js，但你在 package.json 裡面寫的是：</p>
+<p>"main": "index.js"  ❌</p>
+<h3 id="_12">解法：</h3>
+<p>改成指向編譯後的檔案（通常放在 dist/）：</p>
+<p>"main": "dist/index.js"
+"types": "dist/index.d.ts" // 如果有型別檔的話</p>
+<h2 id="3-ts-main">❓ 問題 3：使用 TS 開發時 main 寫錯不報錯？</h2>
+<h3 id="_13">原因：</h3>
+<p>TS 編譯不會檢查 package.json 的 main 欄位。只有當：</p>
+<ul>
+<li>
+<p>其他專案 import 該 module</p>
+</li>
+<li>
+<p>或打包 / 執行該 module</p>
+</li>
+</ul>
+<p>時，Node 才會去解析 main。</p>
+<h2 id="4">📄 問題 4：什麼是型別檔？缺少型別檔會怎樣？</h2>
+<h3 id="dts">型別檔 .d.ts 的作用：</h3>
+<ul>
+<li>
+<p>告訴 TS 編譯器「某個模組有哪些 API 和型別」</p>
+</li>
+<li>
+<p>提供自動補全、錯誤提示、編譯安全性</p>
+</li>
+</ul>
+<h3 id="_14">沒有型別檔會導致：</h3>
+<ul>
+<li>
+<p>TS7016: Could not find a declaration file for module 'xxx'</p>
+</li>
+<li>
+<p>編譯器把該模組推斷為 any</p>
+</li>
+<li>
+<p>失去補全與靜態檢查，易出錯</p>
+</li>
+</ul>
+<h2 id="ts-workspace">✅ 建議工作流程（TS + Workspace）：</h2>
+<p>在 root 專案執行：</p>
+<p>加入 package.json 中的 workspace 設定：</p>
+<p>在每個子專案中執行：</p>
+<p>在每個子專案執行：</p>
+<p>設定 main、types 為 dist/ 資料夾：</p>
+<p>編譯一次，生成型別檔：</p>
+    </article>
+    <p class="post-meta">
+      原文：
+      <a href="https://github.com/Vincent23412/diary/blob/main/content/daily-notes/2025-06-12.md" target="_blank">GitHub</a> ·
+      <a href="https://raw.githubusercontent.com/Vincent23412/diary/main/content/daily-notes/2025-06-12.md" target="_blank">raw</a>
+    </p>
+  </main>
+
+  <footer class="container py-24">
+    <small>最後更新：2025-10-25</small>
+  </footer>
+</body>
+</html>

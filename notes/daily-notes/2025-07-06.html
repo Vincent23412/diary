@@ -1,0 +1,201 @@
+<!doctype html>
+<html lang="zh-Hant-TW">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>2025-07-06</title>
+  <link rel="stylesheet" href="/notes/style.css" />
+</head>
+<body>
+  <header class="container py-24">
+    <h1 class="title">2025-07-06</h1>
+    <nav class="nav">
+      <a href="/notes/daily-notes/index.html" class="nav-link">← 回分類</a>
+      <a href="/notes/index.html" class="nav-link">回總覽</a>
+    </nav>
+  </header>
+
+  <main class="container card">
+    <article class="post-content">
+      <p>正確答案是：</p>
+<p>✅ A. Update the route table for the private subnet to route the outbound traffic to an AWS Network Firewall. Configure domain list rule groups</p>
+<p>✅ 解題重點分析：</p>
+<p>❗需求整理：</p>
+<ul>
+<li>
+<p>EC2 放在 private subnet</p>
+</li>
+<li>
+<p>必須可以 連到特定軟體來源（第三方 URL）下載更新</p>
+</li>
+<li>
+<p>其他所有網際網路流量都要封鎖</p>
+</li>
+<li>
+<p>EC2 裡面有 敏感資料 → 高安全性要求</p>
+</li>
+</ul>
+<p>✅ 為什麼選 A 是正確解：</p>
+<p>AWS Network Firewall 提供以下功能：</p>
+<ul>
+<li>
+<p>支援 FQDN（domain name）filtering（可設定允許的網域名稱）</p>
+</li>
+<li>
+<p>可作為 private subnet 的 NAT 出口點</p>
+</li>
+<li>
+<p>可建立 domain list rule groups，只允許特定 URL/domain 的連線（如 *.trustedrepo.com）</p>
+</li>
+<li>
+<p>其他所有網際網路流量則會被預設規則封鎖</p>
+</li>
+</ul>
+<p>✅ 完整解法流程：</p>
+<p>在 private subnet 所在的 VPC 中部署 AWS Network Firewall</p>
+<p>在 route table 中設定 0.0.0.0/0 的出站流量 要通過 AWS Network Firewall</p>
+<p>在 Network Firewall 設定 只允許特定 FQDN（URL domain）的連線</p>
+<p>所有非白名單的流量自動被封鎖</p>
+<p>這種方式可最小化允許網路存取範圍，又避免在 EC2 上開放過多流量出口，符合最小權限原則與安全性最佳實踐。</p>
+<p>❌ 其他選項錯誤原因：</p>
+<p>✅ 小補充：Domain-based outbound control 的選項</p>
+<ul>
+<li>
+<p>✅ AWS Network Firewall（支援 FQDN allowlist）</p>
+</li>
+<li>
+<p>❌ NAT Gateway + Security Group（不支援 URL）</p>
+</li>
+<li>
+<p>❌ VPC Route Table 本身不能控 URL</p>
+</li>
+<li>
+<p>✅ 可搭配 DNS Firewall（Route 53 Resolver DNS Firewall） 做進一步防護</p>
+</li>
+</ul>
+<p>✅ 總結：</p>
+<p>要讓 private subnet 的 EC2 只連到特定網址並封鎖其他流量，最合適的方式是使用</p>
+<p>AWS Network Firewall + FQDN allowlist →</p>
+<p>選項 A 完全符合這個需求。</p>
+<p>這題要解決的需求有四個：</p>
+<p>✅ 題目需求：</p>
+<p>以階層結構儲存員工資料（hierarchical structured relationship）</p>
+<p>在高流量查詢下仍保持低延遲</p>
+<p>保護敏感資料</p>
+<p>每月若有財務資料出現時，自動 email 通知</p>
+<p>✅ 正確答案是：</p>
+<p>B. Use Amazon DynamoDB to store the employee data in hierarchies. Export the data to Amazon S3 every month.</p>
+<p>E. Configure Amazon Macie for the AWS account. Integrate Macie with Amazon EventBridge to send monthly notifications through an Amazon Simple Notification Service (Amazon SNS) subscription.</p>
+<p>✅ 解題說明：</p>
+<p>B. Amazon DynamoDB 儲存階層資料 + 低延遲</p>
+<ul>
+<li>
+<p>DynamoDB 是 key-value / document 類型的資料庫，支援儲存階層式結構（nested JSON）</p>
+</li>
+<li>
+<p>提供毫秒等級的延遲，非常適合高併發存取</p>
+</li>
+<li>
+<p>可搭配定期導出至 Amazon S3 供分析或備份（如使用 AWS Data Pipeline、Glue Export、DynamoDB Streams）</p>
+</li>
+</ul>
+<p>E. Amazon Macie + SNS + EventBridge</p>
+<ul>
+<li>
+<p>Amazon Macie 可掃描 S3 中是否包含敏感資料（例如財務資訊）</p>
+</li>
+<li>
+<p>EventBridge 可設定規則，讓 Macie 每月掃描報告產生事件</p>
+</li>
+<li>
+<p>將事件透過 SNS 發送 email 通知</p>
+</li>
+</ul>
+<p>✅ 完美滿足「發現財務資料 → 每月寄 email 通知」的需求</p>
+<p>❌ 為何其他選項不正確？</p>
+<p>✅ 總結：</p>
+<p>✅ 正確答案：B 和 E</p>
+<p>這題的關鍵在於設計非同步架構來滿足以下需求：</p>
+<p>✅ 題目需求重點：</p>
+<p>使用者從行動裝置上傳圖片</p>
+<p>系統需「立刻」告知使用者圖片已收到（即時回應）</p>
+<p>圖片縮圖（thumbnail）最多需 60 秒，這部分可以非同步處理</p>
+<p>✅ 正確答案是：</p>
+<p>C. Create an Amazon Simple Queue Service (Amazon SQS) message queue. As images are uploaded, place a message on the SQS queue for thumbnail generation. Alert the user through an application message that the image was received</p>
+<p>✅ 解題說明：</p>
+<p>這是一個標準的非同步任務解耦模式，流程如下：</p>
+<p>前端使用者上傳圖片 → API 層接收</p>
+<p>API 回應「圖片已收到」給前端（不用等縮圖）</p>
+<p>API 將圖片資訊放入 SQS queue</p>
+<p>後端縮圖服務從 SQS queue 拉任務進行圖片處理</p>
+<p>✅ 這樣能確保使用者迅速收到成功訊息，縮圖處理則交由後端非同步處理，實作簡單且彈性高</p>
+<p>❌ 為什麼其他選項不合適？</p>
+<p>✅ 延伸補充：為什麼選 SQS？</p>
+<ul>
+<li>
+<p>解耦 upload 與處理邏輯：提高可維護性與擴展性</p>
+</li>
+<li>
+<p>支援重試與冪等設計：減少資料遺失風險</p>
+</li>
+<li>
+<p>與 Lambda 或 EC2 相容性高：後端縮圖服務可根據負載水平擴展</p>
+</li>
+</ul>
+<p>✅ 結論：</p>
+<p>選項 C（SQS） 提供最佳的非同步任務處理架構，讓使用者立即收到回應，而後端可彈性擴展處理任務，符合需求與最佳實踐。</p>
+<p>✅ 正確答案：C</p>
+<p>這題的關鍵在於選出一個「最具操作效率（MOST operationally efficient）」的方式，來部署一個使用 Go 1.x 撰寫的 AWS Lambda function，並且提供一個：</p>
+<ul>
+<li>
+<p>✅ 支援 HTTPS 呼叫 的 endpoint</p>
+</li>
+<li>
+<p>✅ 使用 IAM 驗證（AWS IAM authentication）</p>
+</li>
+</ul>
+<p>✅ 正確答案是：</p>
+<p>B. Create a Lambda function URL for the function. Specify AWS_IAM as the authentication type.</p>
+<p>✅ 原因解析：</p>
+<p>Lambda Function URLs：</p>
+<ul>
+<li>
+<p>是 AWS 提供的一種最簡單方式，可以直接透過 HTTPS URL 呼叫 Lambda。</p>
+</li>
+<li>
+<p>可以開啟 AWS_IAM 驗證模式：</p>
+</li>
+<li></li>
+<li>
+<p>無需部署 API Gateway 或 CloudFront，極大簡化操作與維護成本。</p>
+</li>
+</ul>
+<p>🔍 各選項分析：</p>
+<p>A.</p>
+<p>Amazon API Gateway + IAM 驗證</p>
+<ul>
+<li>
+<p>雖然符合需求，但 需要額外設定 REST API、方法、整合、IAM 權限等，會增加操作與部署複雜度。</p>
+</li>
+<li>
+<p>❌ 不是最有效率的做法（不符題意）</p>
+</li>
+</ul>
+<p>B. ✅</p>
+<p>Lambda function URL + AWS_IAM 驗證</p>
+<ul>
+<li>最簡潔的架構：</li>
+</ul>
+    </article>
+    <p class="post-meta">
+      原文：
+      <a href="https://github.com/Vincent23412/diary/blob/main/content/daily-notes/2025-07-06.md" target="_blank">GitHub</a> ·
+      <a href="https://raw.githubusercontent.com/Vincent23412/diary/main/content/daily-notes/2025-07-06.md" target="_blank">raw</a>
+    </p>
+  </main>
+
+  <footer class="container py-24">
+    <small>最後更新：2025-10-25</small>
+  </footer>
+</body>
+</html>

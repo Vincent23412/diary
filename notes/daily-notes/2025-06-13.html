@@ -1,0 +1,227 @@
+<!doctype html>
+<html lang="zh-Hant-TW">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>2025-06-13</title>
+  <link rel="stylesheet" href="/notes/style.css" />
+</head>
+<body>
+  <header class="container py-24">
+    <h1 class="title">2025-06-13</h1>
+    <nav class="nav">
+      <a href="/notes/daily-notes/index.html" class="nav-link">← 回分類</a>
+      <a href="/notes/index.html" class="nav-link">回總覽</a>
+    </nav>
+  </header>
+
+  <main class="container card">
+    <article class="post-content">
+      <h1 id="aws">🧠 AWS 錯題整理筆記（含選項與解析）</h1>
+<p>❌ 題目一：EC2 + RDS 要防 SQL Injection</p>
+<p>題目敘述：</p>
+<p>公司將應用部署在 Amazon EC2，資料庫為 Amazon RDS，已實作最小權限。安全團隊希望防範 SQL injection 與其他 Web 攻擊，請選擇操作負擔最小的解法。</p>
+<p>✅ 正確答案：B. 使用 AWS WAF 保護應用程式，使用 RDS parameter group 強化設定</p>
+<ul>
+<li>
+<p>AWS WAF 可即時防禦 SQL injection、XSS 等 Web 攻擊</p>
+</li>
+<li>
+<p>搭配 RDS 的 parameter group 可強化安全設定（如強制 SSL、啟用 log）</p>
+</li>
+<li>
+<p>屬於低操作負擔、易於維運的解法</p>
+</li>
+</ul>
+<p>🔍 選項比較：</p>
+<p>❌ 題目二：跨帳號微服務 HTTPS 溝通與 Service Registry</p>
+<p>題目敘述：</p>
+<p>每個微服務由不同團隊在不同 AWS 帳號中維運，需跨帳號/VPC 溝通（使用 HTTPS），並具備服務註冊與發現能力。要求「最少的管理負擔」。</p>
+<p>✅ 正確答案：B. 建立 VPC Lattice Service Network，提供 HTTPS 與服務註冊</p>
+<ul>
+<li>
+<p>AWS VPC Lattice 為新服務，支援跨帳號/跨 VPC 的 service-to-service 溝通</p>
+</li>
+<li>
+<p>支援服務註冊、自動解析與 IAM 控制權限</p>
+</li>
+<li>
+<p>可設定 HTTPS listener，操作簡單、彈性強</p>
+</li>
+</ul>
+<p>🔍 選項比較：</p>
+<p>❌ 題目三：LDAP 不支援 SAML，但要登入 AWS Console</p>
+<p>題目敘述：</p>
+<p>公司內部使用 LDAP 驗證身份，但該 LDAP 不支援 SAML，仍希望讓使用者透過 LDAP 驗證登入 AWS Console。</p>
+<p>✅ 正確答案：D. 開發自訂 Identity Broker，透過 AWS STS 獲取短期憑證</p>
+<ul>
+<li>
+<p>建立公司內部的身份中介系統，驗證 LDAP 後呼叫 AWS STS AssumeRole</p>
+</li>
+<li>
+<p>回傳的臨時憑證可登入 AWS Console 或使用 CLI / API</p>
+</li>
+<li>
+<p>此方式為 AWS 官方建議，適用於非 SAML 系統整合</p>
+</li>
+</ul>
+<p>🔍 選項比較：</p>
+<h1 id="aws_1">🧠 AWS 錯題整理筆記（含選項與解析）</h1>
+<p>❌ 題目一：禁止 Security Group 開放 SSH (22) 到 0.0.0.0/0，並觸發通知</p>
+<p>題目需求：</p>
+<ul>
+<li>
+<p>偵測是否有 EC2 Security Group 對全世界開放 SSH</p>
+</li>
+<li>
+<p>違規時自動通知</p>
+</li>
+<li>
+<p>最少操作負擔（least operational overhead）</p>
+</li>
+</ul>
+<p>✅ 正確解法：</p>
+<p>B. Enable the restricted-ssh AWS Config managed rule and generate an Amazon SNS notification</p>
+<ul>
+<li>
+<p>AWS Config 可偵測不合規資源設定</p>
+</li>
+<li>
+<p>restricted-ssh 是官方提供的規則，專門用來偵測 22 port 開到 0.0.0.0/0</p>
+</li>
+<li>
+<p>搭配 SNS 可自動發出通知</p>
+</li>
+<li>
+<p>✅ 最低維運、立即上線、最安全</p>
+</li>
+</ul>
+<p>🔍 錯誤選項分析：</p>
+<p>❌ 題目二：了解 AWS Config vs AWS Trusted Advisor 差異</p>
+<p>你的問題： Tag 與安全性監控用 AWS Config 和 Trusted Advisor 有什麼差異？</p>
+<p>✅ 關鍵比較整理：</p>
+<p>❌ 題目三：多區域 EC2 + HTTP 應用，需支援固定 IP + 防 Web 攻擊 + 高效能存取</p>
+<p>題目需求：</p>
+<ul>
+<li>
+<p>多區域 EC2 HTTP 應用</p>
+</li>
+<li>
+<p>✅ 要有固定 IP（Static IP）</p>
+</li>
+<li>
+<p>✅ 要防禦 Web 攻擊（如 SQL Injection）</p>
+</li>
+<li>
+<p>✅ 要全球高效能路由與高可用</p>
+</li>
+</ul>
+<p>✅ 正確解法：</p>
+<p>B. EC2 → ALB + AWS WAF → Global Accelerator</p>
+<ul>
+<li>
+<p>ALB 支援 Layer 7 路由，可套用 WAF</p>
+</li>
+<li>
+<p>Global Accelerator 提供全球 static IP，支援跨區健康檢查與路由</p>
+</li>
+<li>
+<p>✅ 同時滿足：固定 IP、高效能、可用性與安全性</p>
+</li>
+</ul>
+<p>🔍 錯誤選項分析：</p>
+<p>❌ 題目四：防止 EC2 建立時未加上指定 tag，且不得刪除 tag（使用 AWS Organizations）</p>
+<p>題目需求：</p>
+<ul>
+<li>
+<p>EC2 必須加上 data-sensitivity tag（值為 sensitive / nonsensitive）</p>
+</li>
+<li>
+<p>不可建立未標記資源，也不可刪除該 tag</p>
+</li>
+<li>
+<p>使用 AWS Organizations 內的 OU 管理策略</p>
+</li>
+</ul>
+<p>✅ 正確組合解法：</p>
+<p>🔍 錯誤選項分析：</p>
+<h1 id="aws-markdown">🧠 AWS 錯題整理筆記（Markdown 版）</h1>
+<p>❌ 題目一：Textract 處理 PDF 並分析內容與情緒（sentiment）</p>
+<p>題目需求：</p>
+<ul>
+<li>
+<p>處理過去 5 年的 PDF 新聞資料</p>
+</li>
+<li>
+<p>必須使用 Amazon Textract</p>
+</li>
+<li>
+<p>需分析內容與情緒（sentiment）</p>
+</li>
+<li>
+<p>✅ 要求 最低操作負擔（least operational overhead）</p>
+</li>
+</ul>
+<p>✅ 正確解法：</p>
+<p>C. Provide the extracted insights to Amazon Comprehend for analysis. Save the analysis to an Amazon S3 bucket.</p>
+<ul>
+<li>
+<p>Textract：OCR 擷取 PDF 內容</p>
+</li>
+<li>
+<p>Comprehend：情緒分析與 NLP（全託管，免訓練模型）</p>
+</li>
+<li>
+<p>S3：存放結果，方便後續處理或可視化</p>
+</li>
+<li>
+<p>✅ 符合最低操作負擔</p>
+</li>
+</ul>
+<p>❌ 錯誤選項分析：</p>
+<p>❌ 題目二：DynamoDB 讀不到最新資料</p>
+<p>題目需求：</p>
+<ul>
+<li>
+<p>應用使用 DynamoDB</p>
+</li>
+<li>
+<p>觀察到讀取結果不是最新資料</p>
+</li>
+<li>
+<p>✅ 延遲 acceptable，效能正常</p>
+</li>
+<li>
+<p>需找出解決辦法以讀到「最新資料」</p>
+</li>
+</ul>
+<p>✅ 正確解法：</p>
+<p>C. Request strongly consistent reads for the table</p>
+<ul>
+<li>
+<p>DynamoDB 預設是 eventually consistent，會導致讀取到舊資料</p>
+</li>
+<li>
+<p>開啟 ConsistentRead=True 可保證讀取到最新寫入資料</p>
+</li>
+<li>
+<p>✅ 不需改變資料結構或配置，低風險又立即生效</p>
+</li>
+</ul>
+<p>❌ 錯誤選項分析：</p>
+<h1 id="aws-storage-gateway-volume-gateway">📦 AWS Storage Gateway - Volume Gateway 筆記整理</h1>
+<p>AWS Storage Gateway 的 Volume Gateway 提供兩種模式，用於在本地資料中心與 AWS 雲端之間整合儲存與備份需求：</p>
+<h2 id="_1">🧰 模式比較表</h2>
+    </article>
+    <p class="post-meta">
+      原文：
+      <a href="https://github.com/Vincent23412/diary/blob/main/content/daily-notes/2025-06-13.md" target="_blank">GitHub</a> ·
+      <a href="https://raw.githubusercontent.com/Vincent23412/diary/main/content/daily-notes/2025-06-13.md" target="_blank">raw</a>
+    </p>
+  </main>
+
+  <footer class="container py-24">
+    <small>最後更新：2025-10-25</small>
+  </footer>
+</body>
+</html>
