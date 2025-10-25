@@ -2,8 +2,13 @@ name: Daily Notion Sync
 
 on:
   schedule:
-    - cron: "0 15 * * *" # 每天台灣時間 21:00（UTC+8 = UTC 13:00）
-  workflow_dispatch: # 可手動觸發
+    - cron: "0 13 * * *"  # 台灣時間21:00 (UTC+8)
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
 
 jobs:
   run-sync:
@@ -11,11 +16,11 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           persist-credentials: false
 
-      - name: Set up Python
+      - name: Setup Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
@@ -31,8 +36,13 @@ jobs:
           NOTION_PAGE_ID: ${{ secrets.NOTION_PAGE_ID }}
         run: python ./scripts/daily_push_check.py
 
-      - name: build site
+      - name: Build site
         run: python ./scripts/build_site.py
+
+      - name: Check site folder
+        run: |
+          echo "📁 列出 site 資料夾內容："
+          ls -R ./site || echo "⚠️ 沒找到 site！"
 
       - name: Commit and push updated markdown
         env:
@@ -41,19 +51,16 @@ jobs:
           git config --global user.name "github-actions[bot]"
           git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-          # 🔧 強制重設 remote：先刪除再加回來
-          git remote remove origin
-          git remote add origin https://x-access-token:${GH_PAT}@github.com/$GITHUB_REPOSITORY
-          git remote -v  # ✅ 確認 remote URL 真的被改掉了
+          git remote set-url origin https://x-access-token:${GH_PAT}@github.com/$GITHUB_REPOSITORY
 
           git add .
           git commit -m "📥 Update daily log for $(date +'%Y-%m-%d')" || echo "No changes to commit"
-          git push -u origin main
-          
+          git push origin main
+
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
+          github_token: ${{ secrets.GH_PAT }}   # ✅ 改用 PAT（擁有 repo 權限）
           publish_dir: ./site
-
- 
+          publish_branch: gh-pages             # ✅ 明確指定分支
+          cname: ""                            # 若未自訂網域，留空即可
