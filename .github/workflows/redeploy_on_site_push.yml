@@ -1,0 +1,32 @@
+name: Auto Redeploy on Site Changes
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "site/**/*.html"     # 只監聽 site/ 底下的 HTML 檔
+      - "site/**/*.css"      # （可選）如果你希望改到樣式也重新部署
+      - "site/**/*.js"       # （可選）若有 JS
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+jobs:
+  redeploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # ✅ 需要完整歷史紀錄給 gh-pages 用
+
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GH_PAT }}   # ✅ 用你的 PAT，有 write 權限
+          publish_dir: ./site
+          publish_branch: gh-pages
