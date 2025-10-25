@@ -31,6 +31,9 @@ jobs:
           NOTION_PAGE_ID: ${{ secrets.NOTION_PAGE_ID }}
         run: python ./scripts/daily_push_check.py
 
+      - name: build site
+        run: python ./scripts/build_site.py
+
       - name: Commit and push updated markdown
         env:
           GH_PAT: ${{ secrets.GH_PAT }}
@@ -43,6 +46,6 @@ jobs:
           git remote add origin https://x-access-token:${GH_PAT}@github.com/$GITHUB_REPOSITORY
           git remote -v  # ✅ 確認 remote URL 真的被改掉了
 
-          git add .
+          git add 
           git commit -m "📥 Update daily log for $(date +'%Y-%m-%d')" || echo "No changes to commit"
           git push -u origin main
