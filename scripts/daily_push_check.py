@@ -42,8 +42,8 @@ if __name__ == "__main__":
     today_title = datetime.today().strftime("%y/%m/%d")  # e.g., 0530
     child_page_id = find_child_page_block(page_id, today_title)
     today = datetime.today().strftime("%Y-%m-%d")
-    os.makedirs("notion-log", exist_ok=True)
-    filepath = f"notion-log/{today}.md"
+    os.makedirs("daily-notes", exist_ok=True)
+    filepath = f"daily-notes/{today}.md"
     if not child_page_id:
         print(f"⚠️ 找不到子頁面：{today_title}")
         content = "今天休息"
@@ -58,17 +58,3 @@ if __name__ == "__main__":
         with open(filepath, "w", encoding="utf-8") as f:
             f.write(content)
 
-
-        total_path = Path("notion-log/total.md")
-
-        today_entry = f"# {today} 筆記\n\n{content}\n\n---\n"
-
-        if total_path.exists():
-            original = total_path.read_text(encoding="utf-8")
-        else:
-            original = ""
-
-        # 合併後寫回
-        total_path.write_text(today_entry + original.strip(), encoding="utf-8")
-
-        print(f"✅ 已寫入 {filepath} 並更新 total.md")
