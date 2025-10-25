@@ -3,28 +3,23 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>2025-10-25</title>
+  <title>1. 簽章階段（由伺服器或訊息發送者完成）</title>
   <link rel="stylesheet" href="/notes/style.css" />
 </head>
 <body>
   <header class="container py-24">
-    <h1 class="title">2025-10-25</h1>
+    <h1 class="title">1. 簽章階段（由伺服器或訊息發送者完成）</h1>
     <nav class="nav">
-      <a href="/notes/daily-notes/index.html" class="nav-link">← 回分類</a>
+      <a href="/notes/數位簽章/index.html" class="nav-link">← 回分類</a>
       <a href="/notes/index.html" class="nav-link">回總覽</a>
     </nav>
   </header>
 
   <main class="container card">
     <article class="post-content">
-      <h1 id="k8s">K8s</h1>
-<h2 id="tls">TLS</h2>
-<h1 id="_1">目錄</h1>
-<p>加密方法介紹加密方法介紹</p>
+      <p>加密方法介紹加密方法介紹</p>
 <p>非對稱加密的兩種用途</p>
 <p>總結</p>
-<h1 id="_2">加密方法介紹加密方法介紹</h1>
-<h2 id="symmetric-encryption">🔹 對稱式加密（Symmetric Encryption）</h2>
 <p>🔸 使用同一把金鑰來「加密」與「解密」。</p>
 <p>📦 範例：</p>
 <p>金鑰：K
@@ -45,7 +40,6 @@
 <ul>
 <li>難在「如何安全地把金鑰交給對方」。</li>
 </ul>
-<h2 id="asymmetric-encryption">🔹 非對稱式加密（Asymmetric Encryption）</h2>
 <p>🔸 使用一對不同的金鑰：「公鑰 (Public Key)」與「私鑰 (Private Key)」。</p>
 <p>這兩把金鑰互相關聯：</p>
 <ul>
@@ -71,9 +65,7 @@
 <p>即使知道公鑰，也不可能在可行時間內推算出私鑰（靠數學難題，例如大質數分解、橢圓曲線離散對數）。</p>
 </li>
 </ul>
-<h1 id="_3">🧾 非對稱加密的「兩種用途」</h1>
 <p>非對稱加密不只用來「加密資料」，還能用來「數位簽章」。</p>
-<h1 id="_4">加密傳輸</h1>
 <ul>
 <li>
 <p>非對稱加密（公鑰/私鑰）只在握手時用來驗身分與安全交換對稱金鑰。</p>
@@ -84,9 +76,6 @@
 <li>
 <p>現代網站使用 TLS 1.3 + ECDHE，具備前向安全。</p>
 </li>
-</ul>
-<h2 id="_5">角色與名詞表</h2>
-<ul>
 <li>
 <p>Client（用戶端）：你的瀏覽器或 App。</p>
 </li>
@@ -106,7 +95,6 @@
 <p>mTLS：雙向驗證，伺服器也要求客戶端出示憑證。</p>
 </li>
 </ul>
-<h2 id="_6">交換對稱金鑰：兩種典型做法</h2>
 <p>後續資料全靠對稱加密，所以這步是整個安全的關鍵。</p>
 <h3 id="a-tls-12-rsa-key-transport">A. 傳統（TLS 1.2 的 RSA Key Transport，概念易懂）</h3>
 <p>Client 產生一把隨機的 Session Key（對稱金鑰）。</p>
@@ -121,12 +109,10 @@
 <p>由共享祕密導出 Session Key。</p>
 <p>好處：前向安全（就算未來伺服器私鑰外洩，也解不了今天的歷史流量）。</p>
 <p>重點釐清：對稱加密沒有「公鑰」。對稱只有一把金鑰；</p>
-<h2 id="mtls">（可選）mTLS：要求客戶端也證明「你是誰」</h2>
 <ul>
 <li>若伺服器回 CertificateRequest，代表要做雙向驗證：</li>
 </ul>
 <p>適用內網、金流、etcd/K8s 等高敏感情境。</p>
-<h2 id="finished">Finished：切換到對稱加密的「安全通道」</h2>
 <ul>
 <li>
 <p>雙方以 Session Key 對「握手完成」訊息加密與驗證，確認彼此能正確解密。</p>
@@ -134,9 +120,6 @@
 <li>
 <p>自此之後：所有 HTTP/HTTP2/HTTP3 的請求/回應都在對稱加密通道內進行（例如 AES、ChaCha20）。</p>
 </li>
-</ul>
-<h2 id="_7">為什麼中間人拿不到明文？</h2>
-<ul>
 <li>
 <p>握手時傳的是憑證（公鑰）或臨時公鑰，不是私鑰。</p>
 </li>
@@ -150,7 +133,6 @@
 <p>TLS 1.3 + ECDHE 提供前向安全：就算往後某天金鑰外洩，歷史流量仍安全。</p>
 </li>
 </ul>
-<h1 id="_8">為什麼光有加密還不夠？──數位簽章的角色</h1>
 <p>當我們說「通訊加密」時，通常指的是端對端加密（End-to-End Encryption）：</p>
 <p>資料在傳輸過程中被加密，即使中間人攔截，也看不到內容。</p>
 <p>但這裡其實還有一個潛在的風險：</p>
@@ -158,18 +140,16 @@
 <p>這時候，再強的加密也沒用，因為你把祕密加密傳給了錯的人。</p>
 <p>所以除了「保密（Confidentiality）」，</p>
 <p>我們還需要一個機制能「驗證對方的身分（Authenticity）」──這就是 數位簽章（Digital Signature）。</p>
-<h1 id="_9">數位簽章</h1>
 <p>數位簽章是一種使用 非對稱加密 來保證：</p>
 <p>訊息的發送者「確實是他本人」；</p>
 <p>訊息在傳輸過程中「沒有被竄改」。</p>
 <p>它的運作原理類似「電子版的手寫簽名」──</p>
 <p>只是這裡簽的是一段資料的雜湊值（Hash），而不是名字。</p>
-<h2 id="1">1. 簽章階段（由伺服器或訊息發送者完成）</h2>
     </article>
     <p class="post-meta">
       原文：
-      <a href="https://github.com/Vincent23412/diary/blob/main/content/daily-notes/2025-10-25.md" target="_blank">GitHub</a> ·
-      <a href="https://raw.githubusercontent.com/Vincent23412/diary/main/content/daily-notes/2025-10-25.md" target="_blank">raw</a>
+      <a href="https://github.com/Vincent23412/diary/blob/main/content/數位簽章/1._簽章階段（由伺服器或訊息發送者完成）.md" target="_blank">GitHub</a> ·
+      <a href="https://raw.githubusercontent.com/Vincent23412/diary/main/content/數位簽章/1._簽章階段（由伺服器或訊息發送者完成）.md" target="_blank">raw</a>
     </p>
   </main>
 
