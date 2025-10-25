@@ -4,56 +4,197 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>陳敬翰 — 個人網站</title>
-  <link rel="stylesheet" href="/notes/styles.css" />
+
+  <!-- 字型與樣式 -->
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #fafafa;
+      --card-bg: #fff;
+      --text: #333;
+      --accent: #ff914d;
+      --muted: #666;
+      --radius: 16px;
+      --shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    }
+
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0;
+      font-family: "Noto Sans TC", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.7;
+    }
+
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    header {
+      text-align: center;
+      padding: 4rem 1rem 2rem;
+      background: linear-gradient(180deg, #fff 0%, #f8f8f8 100%);
+      border-bottom: 1px solid #eee;
+    }
+
+    h1.title {
+      font-size: 2.2rem;
+      margin: 0.5rem 0;
+      font-weight: 700;
+    }
+
+    .brand {
+      color: var(--accent);
+    }
+
+    .lead {
+      color: var(--muted);
+      font-size: 1rem;
+      margin-top: 0.5rem;
+    }
+
+    .nav {
+      margin-top: 1.5rem;
+      display: flex;
+      justify-content: center;
+      gap: 1.2rem;
+      flex-wrap: wrap;
+    }
+
+    .nav-link {
+      color: var(--text);
+      font-weight: 600;
+      padding: 0.4rem 0.8rem;
+      border-radius: 6px;
+      transition: background 0.2s ease;
+    }
+
+    .nav-link:hover {
+      background: rgba(255, 145, 77, 0.1);
+    }
+
+    .container {
+      max-width: 880px;
+      margin: 2rem auto;
+      padding: 0 1rem;
+    }
+
+    .card {
+      background: var(--card-bg);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 2rem;
+      margin-bottom: 2rem;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
+    }
+
+    .section-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 2px solid #f1f1f1;
+      padding-bottom: 0.5rem;
+      margin-bottom: 1rem;
+    }
+
+    .section-head h2 {
+      margin: 0;
+      font-size: 1.4rem;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+
+    .tile {
+      display: block;
+      background: #fff7f2;
+      border-radius: var(--radius);
+      padding: 1.2rem;
+      transition: transform 0.2s ease, background 0.2s ease;
+      box-shadow: var(--shadow);
+    }
+
+    .tile:hover {
+      transform: translateY(-5px);
+      background: #fff2e6;
+    }
+
+    .tile-title {
+      font-weight: 600;
+      font-size: 1.1rem;
+      color: var(--text);
+    }
+
+    .tile-meta {
+      color: var(--muted);
+      font-size: 0.9rem;
+      margin-top: 0.3rem;
+    }
+
+    footer {
+      text-align: center;
+      color: var(--muted);
+      padding: 2rem 0;
+      border-top: 1px solid #eee;
+      font-size: 0.9rem;
+    }
+  </style>
 </head>
+
 <body>
-  <header class="container py-32">
+  <header>
     <h1 class="title">你好，我是 <span class="brand">陳敬翰</span></h1>
-    <p class="lead">
-      後端 / DevOps / SRE / 雲端愛好者。專注於 Kubernetes、分散式系統、可觀測性與 AWS。
-    </p>
+    <p class="lead">後端 / DevOps / SRE / 雲端愛好者。<br>專注於 Kubernetes、分散式系統、可觀測性與 AWS。</p>
+
     <nav class="nav">
-      <a href="/" class="nav-link active">首頁</a>
-      <a href="/notes/index.html" class="nav-link">學習筆記</a>
-      <a href="mailto:you@example.com" class="nav-link">聯絡我</a>
+      <a href="/" class="nav-link active">🏠 首頁</a>
+      <a href="https://vincent23412.github.io/diary/notes/" class="nav-link">📘 學習筆記</a>
+      <a href="mailto:you@example.com" class="nav-link">✉️ 聯絡我</a>
     </nav>
   </header>
 
   <main class="container">
     <section class="card">
       <h2>關於我</h2>
-      <p>
-        政治大學資訊科學所碩一
-      </p>
+      <p>政治大學資訊科學所碩一，對系統設計與雲端架構有高度熱情。</p>
+      <p>目前專注於後端服務設計、自動化部署流程與可觀測性最佳實踐。</p>
     </section>
 
     <section class="card">
       <div class="section-head">
         <h2>學習筆記</h2>
-        <a class="more" href="/notes/index.html">查看所有分類 →</a>
+        <a class="more" href="https://vincent23412.github.io/diary/notes/">查看所有分類 →</a>
       </div>
 
-      <!-- ↓↓↓ 這一段由 GitHub Action 產生分類項卡（小卡） ↓↓↓ -->
       <div class="grid">
-        <!-- AUTO-GENERATED: categories-mini
-          產生格式舉例（Action 貼進來）：
-          <a class="tile" href="/notes/k8s/index.html">
-            <div class="tile-title">Kubernetes</div>
-            <div class="tile-meta">12 篇文章</div>
-          </a>
-          <a class="tile" href="/notes/java/index.html">
-            <div class="tile-title">Java</div>
-            <div class="tile-meta">8 篇文章</div>
-          </a>
-        -->
+        <!-- AUTO-GENERATED: categories-mini -->
+        <a class="tile" href="https://vincent23412.github.io/diary/notes/k8s/index.html">
+          <div class="tile-title">Kubernetes</div>
+          <div class="tile-meta">12 篇文章</div>
+        </a>
+        <a class="tile" href="https://vincent23412.github.io/diary/notes/java/index.html">
+          <div class="tile-title">Java</div>
+          <div class="tile-meta">8 篇文章</div>
+        </a>
       </div>
-      <!-- ↑↑↑ END AUTO-GENERATED ↑↑↑ -->
     </section>
   </main>
 
-  <footer class="container py-24">
-    <small>© <span id="y"></span> 你的名字．以 HTML 靜態頁 + GitHub Actions 自動更新</small>
+  <footer>
+    <small>© <span id="y"></span> 陳敬翰 · Powered by GitHub Actions 自動部署</small>
   </footer>
-  <script>document.getElementById('y').textContent = new Date().getFullYear()</script>
+
+  <script>
+    document.getElementById('y').textContent = new Date().getFullYear()
+  </script>
 </body>
 </html>
