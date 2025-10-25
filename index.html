@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="zh-Hant-TW">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>陳敬翰 — 個人網站</title>
+  <link rel="stylesheet" href="/notes/styles.css" />
+</head>
+<body>
+  <header class="container py-32">
+    <h1 class="title">你好，我是 <span class="brand">陳敬翰</span></h1>
+    <p class="lead">
+      後端 / DevOps / SRE / 雲端愛好者。專注於 Kubernetes、分散式系統、可觀測性與 AWS。
+    </p>
+    <nav class="nav">
+      <a href="/" class="nav-link active">首頁</a>
+      <a href="/notes/index.html" class="nav-link">學習筆記</a>
+      <a href="mailto:you@example.com" class="nav-link">聯絡我</a>
+    </nav>
+  </header>
+
+  <main class="container">
+    <section class="card">
+      <h2>關於我</h2>
+      <p>
+        這裡放一段你的簡介：學經歷、研究/工作興趣、目前在做什麼、想解決的問題等。
+      </p>
+    </section>
+
+    <section class="card">
+      <div class="section-head">
+        <h2>學習筆記</h2>
+        <a class="more" href="/notes/index.html">查看所有分類 →</a>
+      </div>
+
+      <!-- ↓↓↓ 這一段由 GitHub Action 產生分類項卡（小卡） ↓↓↓ -->
+      <div class="grid">
+        <!-- AUTO-GENERATED: categories-mini
+          產生格式舉例（Action 貼進來）：
+          <a class="tile" href="/notes/k8s/index.html">
+            <div class="tile-title">Kubernetes</div>
+            <div class="tile-meta">12 篇文章</div>
+          </a>
+          <a class="tile" href="/notes/java/index.html">
+            <div class="tile-title">Java</div>
+            <div class="tile-meta">8 篇文章</div>
+          </a>
+        -->
+      </div>
+      <!-- ↑↑↑ END AUTO-GENERATED ↑↑↑ -->
+    </section>
+  </main>
+
+  <footer class="container py-24">
+    <small>© <span id="y"></span> 你的名字．以 HTML 靜態頁 + GitHub Actions 自動更新</small>
+  </footer>
+  <script>document.getElementById('y').textContent = new Date().getFullYear()</script>
+</body>
+</html>

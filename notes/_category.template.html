@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="zh-Hant-TW">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>{{CATEGORY_NAME}} — 學習筆記</title>
+  <link rel="stylesheet" href="/notes/styles.css" />
+</head>
+<body>
+  <header class="container py-24">
+    <h1 class="title">{{CATEGORY_NAME}}</h1>
+    <p class="sublead">這裡列出 {{CATEGORY_NAME}} 分類的所有筆記。</p>
+    <nav class="nav">
+      <a href="/" class="nav-link">← 回首頁</a>
+      <a href="/notes/index.html" class="nav-link">回分類總覽</a>
+    </nav>
+  </header>
+
+  <main class="container">
+    <section class="card">
+      <h2>文章列表</h2>
+      <ul class="post-list">
+        <!-- AUTO-GENERATED: posts
+          由 Action 依該分類插入 <li>，格式如下：
+          <li class="post-item">
+            <a class="post-link" href="https://github.com/<your>/<repo>/blob/main/content/{{CATEGORY_SLUG}}/2025-10-25-foo.md">
+              [2025-10-25] K8s Ingress 實作筆記
+            </a>
+            <span class="post-meta">
+              原文：<a href="https://raw.githubusercontent.com/<your>/<repo>/main/content/{{CATEGORY_SLUG}}/2025-10-25-foo.md" target="_blank" rel="noopener">raw</a>
+            </span>
+          </li>
+          <li class="post-item">
+            <a class="post-link" href="https://github.com/<your>/<repo>/blob/main/content/{{CATEGORY_SLUG}}/2025-10-20-bar.md">
+              [2025-10-20] Controller vs Operator 筆記
+            </a>
+            <span class="post-meta">原文：<a href=".../raw/..." target="_blank" rel="noopener">raw</a></span>
+          </li>
+        -->
+      </ul>
+    </section>
+  </main>
+
+  <footer class="container py-24">
+    <small>最後更新：<!-- AUTO-GENERATED: last-updated -->2025-10-25<!-- END --></small>
+  </footer>
+</body>
+</html>
