@@ -1,6 +1,9 @@
 #!/usr/bin/env python3
 import os
 import datetime
+import re
+import markdown
+from pathlib import Path
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # 回到專案根目錄
 
@@ -10,6 +13,9 @@ NOTES_DIR = os.path.join(SITE_DIR, "notes")
 TEMPLATE_PATH = os.path.join(NOTES_DIR, "_category.template.html")
 NOTES_INDEX_PATH = os.path.join(NOTES_DIR, "index.html")
 HOME_PATH = os.path.join(SITE_DIR, "index.html")
+
+
+# TODO site 的主要 index 還沒自動增加筆記分類條目
 
 # === 輔助函式 ===
 def read_file(path):
@@ -45,8 +51,6 @@ def build_site():
     template = read_file(TEMPLATE_PATH)
     date_str = datetime.date.today().isoformat()
 
-    print(categories.items())
-
     # === 生成每個分類的 HTML 頁 ===
     POST_TEMPLATE_PATH = os.path.join(NOTES_DIR, "_post.template.html")
 
@@ -58,16 +62,11 @@ def build_site():
         # === 分類總覽 index.html ===
         category_index = os.path.join(category_dir, "index.html")
 
-        # 讀取已存在的分類頁，或使用模板新建
-        if os.path.exists(category_index):
-            html = read_file(category_index)
-            print(f"🧩 已存在 {category_index}，將更新條目列表。")
-        else:
-            html = read_file(TEMPLATE_PATH)
-            html = (
-                html.replace("{{CATEGORY_NAME}}", category_name)
-                    .replace("{{CATEGORY_SLUG}}", category)
-            )
+        html = read_file(TEMPLATE_PATH)
+        html = (
+            html.replace("{{CATEGORY_NAME}}", category_name)
+                .replace("{{CATEGORY_SLUG}}", category)
+        )
 
         post_items = ""
         for filename in files:
@@ -78,8 +77,20 @@ def build_site():
     <a class="post-link" href="{html_name}">{title}</a>
     </li>
     """
-        html = html.replace("<!-- AUTO-GENERATED: posts -->", post_items)
-        html = html.replace("<!-- AUTO-GENERATED: last-updated -->", date_str)
+            # 用正則安全地替換多行註解區塊
+        html = re.sub(
+            r"<!-- AUTO-GENERATED: posts[\s\S]*?-->",
+            post_items,
+            html
+        )
+
+        # 更新最後更新日期（同樣安全替換）
+        html = re.sub(
+            r"<!-- AUTO-GENERATED: last-updated[\s\S]*?-->",
+            date_str,
+            html
+        )
+
         write_file(category_index, html)
         print(f"✅ 更新/建立 {category_index}")
 
@@ -91,9 +102,21 @@ def build_site():
             raw_url = f"https://raw.githubusercontent.com/Vincent23412/diary/main/content/{category}/{filename}"
             blob_url = f"https://github.com/Vincent23412/diary/blob/main/content/{category}/{filename}"
 
-            # 讀 Markdown 內容
+            # 讀取 Markdown 內容
             with open(md_path, "r", encoding="utf-8") as f:
                 md_content = f.read()
+
+            # 轉換 Markdown → HTML
+            html_body = markdown.markdown(
+                md_content,
+                extensions=[
+                    "fenced_code",    # 支援 ``` 區塊
+                    "tables",         # 支援表格
+                    "codehilite",     # 支援語法高亮（需要 pygments）
+                    "toc",            # 自動生成目錄
+                    "sane_lists"      # 更接近 GitHub 的清單行為
+                ]
+            )
 
             # 插入模板
             post_html = (
@@ -103,13 +126,12 @@ def build_site():
                 .replace("{{RAW_URL}}", raw_url)
                 .replace("{{BLOB_URL}}", blob_url)
                 .replace("{{LAST_UPDATED}}", date_str)
-                .replace("<!-- AUTO-GENERATED: post-body -->", f"<pre>{md_content}</pre>")
+                .replace("<!-- AUTO-GENERATED: post-body -->", html_body)
             )
 
             output_path = os.path.join(category_dir, filename.replace(".md", ".html"))
             write_file(output_path, post_html)
             print(f"📝 已生成文章頁：{output_path}")
-
 
 if __name__ == "__main__":
     build_site()

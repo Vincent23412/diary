@@ -30,3 +30,17 @@ a:hover{text-decoration:underline}
 .post-link{font-weight:600}
 .post-meta{font-size:13px;color:var(--muted)}
 footer small{color:var(--muted)}
+/* code highlight 基礎樣式 */
+.codehilite {
+  background: #1e1e1e;
+  color: #dcdcdc;
+  padding: 12px;
+  border-radius: 8px;
+  overflow-x: auto;
+  font-family: "JetBrains Mono", monospace;
+}
+.codehilite .hll { background-color: #49483e }
+.codehilite .c { color: #75715e } /* Comment */
+.codehilite .k { color: #66d9ef } /* Keyword */
+.codehilite .o { color: #f92672 } /* Operator */
+.codehilite .s { color: #e6db74 } /* String */
