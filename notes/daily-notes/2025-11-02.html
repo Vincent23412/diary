@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="zh-Hant-TW">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>2025-11-02</title>
+  <link rel="stylesheet" href="/notes/style.css" />
+</head>
+<body>
+  <header class="container py-24">
+    <h1 class="title">2025-11-02</h1>
+    <nav class="nav">
+      <a href="/notes/daily-notes/index.html" class="nav-link">← 回分類</a>
+      <a href="/notes/index.html" class="nav-link">回總覽</a>
+    </nav>
+  </header>
+
+  <main class="container card">
+    <article class="post-content">
+      <h1 id="other-issue">other issue</h1>
+<h2 id="dns-and-aws-route-53">DNS and AWS route 53</h2>
+<p>🌐 DNS 整體運作與 Route 53 權威伺服器流程總覽</p>
+<p>🧭 一、整體角色架構</p>
+<p>🪄 二、設定流程</p>
+<p>步驟 1️⃣：購買網域（Domain Registration）</p>
+<p>🔹 你要做的事：</p>
+<p>到一家 Registrar（網域註冊商） 購買網域，例如：</p>
+<ul>
+<li>
+<p>GoDaddy</p>
+</li>
+<li>
+<p>Google Domains</p>
+</li>
+<li>
+<p>Namecheap</p>
+</li>
+<li>
+<p>Cloudflare Registrar</p>
+</li>
+</ul>
+<p>假設你買的是：</p>
+<p>mindechoserver.com</p>
+<p>🔹 背後發生的事：</p>
+<p>Registrar 會向 .com 的官方 Registry（註冊管理機構）（例如 Verisign）登記這個網域。</p>
+<p>.com 的 TLD DNS 伺服器 會記錄這筆資料：</p>
+<p>此時網域屬於你，但 DNS 管理可能還在 Registrar 的系統裡。</p>
+<p>🧠 簡單說：</p>
+<p>你擁有了「名字」，但還沒告訴世界「這個名字要指向哪台伺服器」。</p>
+<p>步驟 2️⃣：在 Route 53 建立 Hosted Zone</p>
+<ul>
+<li>
+<p>在 AWS Route 53 console → 建立一個「Public Hosted Zone」
+例如：mindechoserver.com</p>
+</li>
+<li>
+<p>Route 53 會自動產生一組 Name Server (NS)：</p>
+</li>
+</ul>
+<p>ns-123.awsdns-45.net.</p>
+<p>ns-456.awsdns-78.com.</p>
+<p>ns-789.awsdns-12.org.</p>
+<p>ns-012.awsdns-34.co.uk.</p>
+<ul>
+<li>這些 NS 就是「Route 53 權威伺服器的實際位置」。</li>
+</ul>
+<p>🧠 意義：</p>
+<p>AWS 已經幫你準備好一組權威伺服器，只等你把它註冊到全球 DNS 系統。</p>
+<p>步驟 3️⃣：到網域註冊商（Registrar）修改 NS 記錄</p>
+<ul>
+<li>
+<p>登入你購買網域的地方（GoDaddy、Google Domains、Namecheap…）</p>
+</li>
+<li>
+<p>將該網域的 Name Server 設定 改成上面 Route 53 提供的四組 NS。</p>
+</li>
+<li>
+<p>儲存後，Registrar 會通知 .com（或對應的 TLD Registry），更新 zone 檔。</p>
+</li>
+</ul>
+<p>🧠 意義：</p>
+<p>這一步是「把 DNS 管理權委派（delegate）」給 Route 53。</p>
+<p>從此 .com 的 TLD 知道：「mindechoserver.com 是由 AWS Route 53 管的。」</p>
+<p>⚙️ 三、查詢流程（使用者實際訪問時）</p>
+<p>假設有人在瀏覽器輸入：</p>
+<p>www.mindechoserver.com</p>
+<p>整個解析過程如下：</p>
+<p>1️⃣ 使用者的 Local DNS（例如中華電信）先查快取。</p>
+<p>↓（沒找到）</p>
+<p>2️⃣ 去問 Root DNS：</p>
+<p>「.com 的伺服器在哪？」</p>
+<p>↓</p>
+<p>3️⃣ Root 回答：</p>
+<p>「去問 .com TLD 伺服器。」</p>
+<p>↓</p>
+<p>4️⃣ .com TLD 查 zone file，發現：</p>
+<p>mindechoserver.com → NS = ns-123.awsdns-45.net.</p>
+<p>↓</p>
+<p>5️⃣ 告訴 Local DNS：</p>
+<p>「去問 AWS Route 53。」</p>
+<p>↓</p>
+<p>6️⃣ Local DNS 問 Route 53（你的權威伺服器）：</p>
+<p>「www.mindechoserver.com 的 IP 是多少？」</p>
+<p>↓</p>
+<p>7️⃣ Route 53 回答：</p>
+<p>「54.240.22.10」</p>
+<p>↓</p>
+<p>8️⃣ Local DNS 把結果回傳給使用者瀏覽器，</p>
+<p>並快取以加速下次查詢。</p>
+<p>🏁 四、整體資料流向圖</p>
+<p>┌──────────────┐</p>
+<p>│  User Client │</p>
+<p>└──────┬───────┘</p>
+<p>│ 查詢 www.mindechoserver.com</p>
+<p>▼</p>
+<p>┌──────────────┐</p>
+<p>│ Local Resolver│  ← ISP 的 DNS</p>
+<p>└──────┬───────┘</p>
+<p>│</p>
+<p>▼</p>
+<p>┌──────────────┐</p>
+<p>│ Root DNS     │  → 告訴你去問 .com</p>
+<p>└──────┬───────┘</p>
+<p>│</p>
+<p>▼</p>
+<p>┌──────────────┐</p>
+<p>│ .com TLD DNS │  → 告訴你去問 AWS 的 NS</p>
+<p>└──────┬───────┘</p>
+<p>│</p>
+<p>▼</p>
+<p>┌────────────────────┐</p>
+<p>│ Route 53 (Authoritative) │</p>
+<p>│ ns-123.awsdns-45.net 等  │</p>
+<p>└────────┬─────────────┘</p>
+<p>│</p>
+<p>▼</p>
+<p>回傳 IP：54.240.22.10 ✅</p>
+<p>🧠 五、重點總結</p>
+    </article>
+    <p class="post-meta">
+      原文：
+      <a href="https://github.com/Vincent23412/diary/blob/main/content/daily-notes/2025-11-02.md" target="_blank">GitHub</a> ·
+      <a href="https://raw.githubusercontent.com/Vincent23412/diary/main/content/daily-notes/2025-11-02.md" target="_blank">raw</a>
+    </p>
+  </main>
+
+  <footer class="container py-24">
+    <small>最後更新：2025-11-02</small>
+  </footer>
+</body>
+</html>
